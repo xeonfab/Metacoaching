@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accélération IA & Refonte UX — Méta-Coaching</title>
+<style>
+  :root {
+    --blue: #1E5BFF;
+    --pink: #E91E8C;
+    --dark: #0F172A;
+    --gray: #64748B;
+    --light: #F8FAFC;
+    --border: #E2E8F0;
+    --green: #22C55E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: white;
+    color: var(--dark);
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: var(--dark);
+    padding: 48px 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-left h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .header-left p {
+    color: #94A3B8;
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .header-right {
+    text-align: right;
+  }
+  .header-right .date {
+    color: #64748B;
+    font-size: 13px;
+  }
+  .header-right .author {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Content */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 40px;
+  }
+
+  /* Context block */
+  .context-block {
+    background: var(--light);
+    border-left: 4px solid var(--blue);
+    padding: 24px 28px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 56px;
+  }
+  .context-block p {
+    color: var(--gray);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .context-block strong {
+    color: var(--dark);
+  }
+
+  /* Section title */
+  .section-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--gray);
+    margin-bottom: 32px;
+  }
+
+  /* Chantier card */
+  .chantier {
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .chantier-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--light);
+  }
+  .chantier-num {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .chantier-num.pink { background: var(--pink); }
+  .chantier-num.green { background: var(--green); }
+  .chantier-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+  .chantier-duration {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray);
+    background: white;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .chantier-body {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .chantier-col h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray);
+    margin-bottom: 10px;
+  }
+  .chantier-col p, .chantier-col li {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.6;
+  }
+  .chantier-col ul {
+    list-style: none;
+    padding: 0;
+  }
+  .chantier-col ul li {
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .chantier-col ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--blue);
+    font-size: 12px;
+  }
+  .signal {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #991B1B;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1.5px solid var(--border);
+    margin: 56px 0;
+  }
+
+  /* IA section */
+  .ia-intro {
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 32px;
+  }
+  .ia-intro h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .ia-intro p {
+    color: #94A3B8;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .ia-intro .highlight {
+    color: #60A5FA;
+    font-weight: 600;
+  }
+
+  /* Use case grid */
+  .usecase-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .usecase-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .usecase-card .uc-dept {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--blue);
+    margin-bottom: 8px;
+  }
+  .usecase-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .usecase-card p {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+  .usecase-card .gain {
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  /* Chantier steps */
+  .chantier-steps {
+    padding: 20px 24px;
+    border-top: 1.5px solid var(--border);
+    background: white;
+  }
+  .chantier-steps h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+  .step-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+  .step-day {
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    background: var(--blue);
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-day.pink { background: var(--pink); }
+  .step-day.green { background: var(--green); }
+  .step-row p {
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+  }
+  .step-row p strong {
+    color: var(--dark);
+  }
+
+  /* Deliverable tag */
+  .deliverable-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1.5px solid var(--border);
+    background: var(--light);
+  }
+  .deliverable-tag {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark);
+    background: white;
+    border: 1.5px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .deliverable-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+  }
+
+  /* Methodology */
+  .method-steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 40px;
+  }
+  .method-step {
+    flex: 1;
+    padding: 20px;
+    border: 1.5px solid var(--border);
+    border-right: none;
+    position: relative;
+  }
+  .method-step:last-child {
+    border-right: 1.5px solid var(--border);
+    border-radius: 0 10px 10px 0;
+  }
+  .method-step:first-child {
+    border-radius: 10px 0 0 10px;
+  }
+  .method-step .step-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .method-step h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+  .method-step p {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  /* Timeline */
+  .timeline {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 40px;
+  }
+  .timeline h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 20px;
+  }
+  .timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .timeline-label {
+    width: 160px;
+    font-weight: 600;
+    color: var(--dark);
+    flex-shrink: 0;
+  }
+  .timeline-bar-wrap {
+    flex: 1;
+    background: #E2E8F0;
+    border-radius: 4px;
+    height: 8px;
+    position: relative;
+  }
+  .timeline-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--blue);
+  }
+  .timeline-bar.pink { background: var(--pink); }
+  .timeline-bar.green { background: var(--green); }
+  .timeline-bar.orange { background: #F59E0B; }
+  .timeline-weeks {
+    width: 60px;
+    font-size: 12px;
+    color: var(--gray);
+    text-align: right;
+  }
+
+  /* CTA */
+  .cta-block {
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .cta-block h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+  }
+  .cta-block p {
+    font-size: 14px;
+    color: #94A3B8;
+  }
+  .cta-btn {
+    background: var(--blue);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer p {
+    font-size: 13px;
+    color: var(--gray);
+  }
+
+  @media (max-width: 640px) {
+    .header { padding: 32px 24px; flex-direction: column; gap: 16px; align-items: flex-start; }
+    .container { padding: 40px 20px; }
+    .chantier-body { grid-template-columns: 1fr; }
+    .usecase-grid { grid-template-columns: 1fr; }
+    .method-steps { flex-direction: column; }
+    .method-step { border-right: 1.5px solid var(--border); border-bottom: none; border-radius: 0; }
+    .method-step:first-child { border-radius: 10px 10px 0 0; }
+    .method-step:last-child { border-radius: 0 0 10px 10px; border-bottom: 1.5px solid var(--border); }
+    .cta-block { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Refonte UX — 3 Chantiers prioritaires</h1>
+    <p>Proposition · LineCoaching · Méta-Coaching</p>
+  </div>
+  <div class="header-right">
+    <div class="date">Juin 2026</div>
+    <div class="author">Fabien Riou · Consultant IA</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Context -->
+  <div class="context-block">
+    <p>
+      Suite à l'audit UX du dashboard LineCoaching et à l'atelier du 18 juin 2026, ce document détaille
+      <strong>les 3 chantiers UX prioritaires</strong> : objectifs, déroulé jour par jour, livrables attendus et séquence de démarrage.
+    </p>
+  </div>
+
+  <!-- === PARTIE 1 : 3 CHANTIERS UX === -->
+  <div class="section-title">3 chantiers prioritaires</div>
+  <div class="section-sub">
+    Direction validée en atelier : hypothèse "Plan du jour" — une surface d'action, pas un catalogue.
+    Priorité comportements > résultats, conformément aux recommandations médicales.
+    <br><br>
+    <strong>Rythme IA-first</strong> : benchmark, hypothèses, maquettes et specs produits en quelques jours par chantier — pas en semaines.
+  </div>
+
+  <!-- Chantier 1 -->
+  <div class="chantier">
+    <div class="chantier-header">
+      <div class="chantier-num">1</div>
+      <div class="chantier-title">Dashboard & Accueil — Surface d'action</div>
+      <div class="chantier-duration">~1 semaine · 2 750€ HT</div>
+    </div>
+    <div class="chantier-body">
+      <div class="chantier-col">
+        <div class="signal">⚠ 58% d'abandon Start → QPP actuellement</div>
+        <h4>Contexte</h4>
+        <p>L'utilisateur J1 arrive sur un catalogue de 13 éléments sans direction. Deux blocs identiques en compétition, aucune action prioritaire identifiée. Direction validée en atelier : <strong>hypothèse "Plan du jour"</strong> — 1 à 2 actions max, progression comportementale, sidebar épurée.</p>
+      </div>
+      <div class="chantier-col">
+        <h4>Ce qu'on change</h4>
+        <ul>
+          <li>État J1 : CTA unique "Faire votre bilan" — zéro distraction</li>
+          <li>État programme : Plan du jour centré sur les comportements, pas les résultats (poids, kg)</li>
+          <li>Indicateurs : carnets remplis, séances faites — pas de métriques médicales</li>
+          <li>Navigation : 4-5 items max, contenu secondaire retiré du dashboard</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chantier-steps">
+      <h4>Déroulé</h4>
+      <div class="step-row">
+        <span class="step-day">J1</span>
+        <p><strong>Benchmark IA-assisté</strong> — analyse de 6 apps concurrentes (Kwit, Noom, Sleepio, MyFitnessPal, Nozbe, Happify) : patterns retenus, erreurs à éviter, adaptations LineCoaching</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day">J2</span>
+        <p><strong>3 variantes de dashboard</strong> — mobile + desktop : C1 checklist pure / C2 + jauge comportementale / C3 + message contextuel coach. Présentées avec les deux états (J1 onboarding / programme en cours)</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day">J3</span>
+        <p><strong>Atelier de validation</strong> — choix d'une direction, retours intégrés, arbitrages sur les indicateurs à afficher</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day">J4–5</span>
+        <p><strong>Maquette haute fidélité + spec Angular</strong> — composants, états, règles d'affichage, cas limites (carnet non rempli, inactivité >7j, 2 parcours simultanés)</p>
+      </div>
+    </div>
+    <div class="deliverable-row">
+      <span class="deliverable-label">Livrables →</span>
+      <span class="deliverable-tag">Benchmark annoté PDF</span>
+      <span class="deliverable-tag">3 maquettes interactives HTML</span>
+      <span class="deliverable-tag">Spec Angular complète</span>
+    </div>
+  </div>
+
+  <!-- Chantier 2 -->
+  <div class="chantier">
+    <div class="chantier-header">
+      <div class="chantier-num pink">2</div>
+      <div class="chantier-title">Expérience In-Programme — Audio & Vidéo IA</div>
+      <div class="chantier-duration">~4 jours · 2 200€ HT</div>
+    </div>
+    <div class="chantier-body">
+      <div class="chantier-col">
+        <h4>Contexte</h4>
+        <p>Chaque activité impose 6 pages à lire (Bienvenue → Informations → Consignes → Conseils → Application → Bilan) avant de pouvoir agir. L'expérience est perçue comme un cours en ligne, pas comme un accompagnement. L'utilisateur ne sait pas non plus qu'il s'engage sur N jours de pratique avant d'entrer dans l'étape.</p>
+      </div>
+      <div class="chantier-col">
+        <h4>Ce qu'on change</h4>
+        <ul>
+          <li><strong>Signal durée dès l'étape</strong> — "Étape 2 · 4 activités · puis 3 jours de pratique"</li>
+          <li><strong>2 modes au lieu de 6 pages</strong> — "Découvrir" (contenu optionnel) + "Faire" (entrée directe par défaut)</li>
+          <li><strong>Audio TTS ElevenLabs</strong> — écouter les consignes au lieu de les lire, en mobilité (30€/mois, zéro production)</li>
+          <li><strong>Vidéo IA coach avatar</strong> — HeyGen ou Synthesia : 60-90s par activité, coach virtuel remplace les murs de texte (~100€ de génération, zéro tournage)</li>
+          <li><strong>Bilan d'étape visible avant l'entrée</strong> — la récompense annoncée dès le départ, pas découverte après N jours</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chantier-steps">
+      <h4>Déroulé</h4>
+      <div class="step-row">
+        <span class="step-day pink">J1</span>
+        <p><strong>Audit contenu + benchmark outils</strong> — inventaire des textes à transformer, test HeyGen et ElevenLabs sur 2 activités pilotes (dégustation, signaux de faim), choix de l'avatar coach, test voix TTS en français</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day pink">J2</span>
+        <p><strong>Production pilote</strong> — scripts vidéo IA rédigés avec Claude pour 5 activités clés, génération audio TTS sur toutes les consignes, revue qualité et ajustements voix/rythme/avatar</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day pink">J3</span>
+        <p><strong>Maquette nouvelle structure</strong> — prototype de l'expérience simplifiée (signal étape, mode Découvrir/Faire, intégration vidéo + audio), présentation et validation avec AD Bonte et Paul</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day pink">J4</span>
+        <p><strong>Spec Angular</strong> — composant activité redesigné, règles d'affichage Découvrir/Faire, intégration player audio TTS et vidéo HeyGen, spec bilan d'étape en amont</p>
+      </div>
+    </div>
+    <div class="deliverable-row">
+      <span class="deliverable-label">Livrables →</span>
+      <span class="deliverable-tag">5 vidéos IA coach (pilote)</span>
+      <span class="deliverable-tag">Audios TTS toutes consignes</span>
+      <span class="deliverable-tag">Maquette structure 2 modes</span>
+      <span class="deliverable-tag">Spec Angular</span>
+    </div>
+  </div>
+
+  <!-- Chantier 3 -->
+  <div class="chantier">
+    <div class="chantier-header">
+      <div class="chantier-num green">3</div>
+      <div class="chantier-title">Re-engagement Carnet — Rétention J1 → JN</div>
+      <div class="chantier-duration">~2 jours · 1 100€ HT</div>
+    </div>
+    <div class="chantier-body">
+      <div class="chantier-col">
+        <h4>Contexte</h4>
+        <p>Le carnet est le mécanisme de validation de chaque étape : après les activités de contenu, l'utilisateur observe ses comportements pendant N jours avant d'accéder au bilan et passer à l'étape suivante. Revenir saisir le lendemain nécessite 4 niveaux de navigation — c'est là que la majorité abandonne entre J1 et JN.</p>
+      </div>
+      <div class="chantier-col">
+        <h4>Ce qu'on change</h4>
+        <ul>
+          <li><strong>Deep link direct</strong> — "Mon carnet · Jour 2/3" depuis le Plan du jour → saisie en un tap, sans re-naviguer</li>
+          <li><strong>Progress Jour X/N</strong> — visible en permanence sur le dashboard pendant la période de pratique</li>
+          <li><strong>Page de transition pré-carnet</strong> — après les activités : aperçu du bilan à venir + engagement sur les N jours à venir</li>
+          <li><strong>Relance contextuelle 24h</strong> — si J1 rempli et J2 absent, message de reprise personnalisé</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chantier-steps">
+      <h4>Déroulé</h4>
+      <div class="step-row">
+        <span class="step-day green">J1</span>
+        <p><strong>Spec deep link + page de transition</strong> — règles de déclenchement (quel carnet, quel jour, quelle étape active), contenu de la page d'engagement pré-carnet avec aperçu bilan flou</p>
+      </div>
+      <div class="step-row">
+        <span class="step-day green">J2</span>
+        <p><strong>Composant "carnet actif" + relance</strong> — maquette du bloc Jour X/N dans le Plan du jour, spec de la notification de relance 24h, intégration spec Angular</p>
+      </div>
+    </div>
+    <div class="deliverable-row">
+      <span class="deliverable-label">Livrables →</span>
+      <span class="deliverable-tag">Spec deep link carnet</span>
+      <span class="deliverable-tag">Page de transition pré-carnet</span>
+      <span class="deliverable-tag">Composant Jour X/N dashboard</span>
+      <span class="deliverable-tag">Spec relance 24h</span>
+    </div>
+  </div>
+
+  <!-- Timeline UX -->
+  <div class="timeline" style="margin-top: 32px;">
+    <h4>Séquence estimée — 2 semaines · Rythme IA-first</h4>
+    <div class="timeline-row">
+      <div class="timeline-label">Dashboard (C1)</div>
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar" style="width: 50%;"></div>
+      </div>
+      <div class="timeline-weeks">~1 sem.</div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">Expérience IA (C2)</div>
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar pink" style="width: 38%; margin-left: 50%;"></div>
+      </div>
+      <div class="timeline-weeks">~4 j</div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">Re-engagement (C3)</div>
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar green" style="width: 20%; margin-left: 80%;"></div>
+      </div>
+      <div class="timeline-weeks">~2 j</div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-label">Onglets webinars</div>
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar orange" style="width: 5%;"></div>
+      </div>
+      <div class="timeline-weeks">0.5 j</div>
+    </div>
+    <p style="font-size: 12px; color: var(--gray); margin-top: 16px;">
+      * Benchmark IA-assisté : J1 · Variantes mockup : J2 · Validation client : J3 · Spec dev : J4-5
+    </p>
+  </div>
+
+
+  <!-- CTA -->
+  <div class="cta-block">
+    <div>
+      <h3>Prochaine étape</h3>
+      <p>Un appel de 30 min pour valider les priorités et caler le démarrage du Chantier 1.</p>
+    </div>
+    <a class="cta-btn" href="mailto:fabien.riou92@gmail.com">Planifier un appel →</a>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Fabien Riou · Consultant IA & Automatisation</p>
+    <p>fabien.riou92@gmail.com</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LineCoaching · 4 Hypothèses Desktop</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:    #1E5BFF;
+      --blue-dk: #1440CC;
+      --blue-lt: #EBF0FF;
+      --pink:    #E91E8C;
+      --green:   #22C55E;
+      --green-dk:#16A34A;
+      --green-lt:#F0FDF4;
+      --orange:  #F59E0B;
+      --teal:    #0891B2;
+      --gray-50: #F8F9FA;
+      --gray-100:#F1F3F5;
+      --gray-200:#E2E8F0;
+      --gray-400:#94A3B8;
+      --gray-500:#64748B;
+      --gray-700:#334155;
+      --gray-900:#0F172A;
+      --sidebar: 220px;
+      --topbar:  60px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #CBD5E0;
+      min-height: 100vh;
+    }
+
+    /* ── META TABS ── */
+    .meta-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      background: #0F172A;
+      display: flex; align-items: stretch;
+    }
+    .meta-label {
+      padding: 0 18px;
+      font-size: 11px; font-weight: 800; letter-spacing: .5px;
+      color: rgba(255,255,255,.3); text-transform: uppercase;
+      display: flex; align-items: center; border-right: 1px solid rgba(255,255,255,.07);
+      white-space: nowrap;
+    }
+    .hypo-tab {
+      flex: 1; border: none; background: transparent; cursor: pointer;
+      padding: 0; border-right: 1px solid rgba(255,255,255,.07);
+      display: flex; flex-direction: column; transition: background .15s;
+    }
+    .hypo-tab:last-child { border-right: none; }
+    .hypo-tab:hover { background: rgba(255,255,255,.05); }
+    .hypo-tab.active { background: rgba(255,255,255,.1); }
+    .ht-bar { height: 3px; }
+    .ht-body { padding: 8px 16px 10px; text-align: left; }
+    .ht-v { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.35); margin-bottom: 2px; }
+    .ht-n { font-size: 13px; font-weight: 800; color: white; }
+    .ht-r { font-size: 10px; color: rgba(255,255,255,.38); margin-top: 1px; }
+
+    /* ── BROWSER FRAME ── */
+    .browser-wrap {
+      margin: 52px auto 40px;
+      max-width: 1320px;
+      padding: 0 20px;
+    }
+    .browser-chrome {
+      background: #E8EAED;
+      border-radius: 10px 10px 0 0;
+      padding: 10px 14px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .bc-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .bc-url {
+      flex: 1; background: white; border-radius: 5px;
+      padding: 4px 12px; font-size: 12px; color: #555;
+      margin: 0 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .bc-url::before { content: '🔒'; font-size: 10px; }
+    .browser-body {
+      background: white;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      height: 760px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── APP SHELL ── */
+    .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar);
+      background: var(--gray-900);
+      flex-shrink: 0;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .sb-logo {
+      padding: 18px 20px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .sb-logo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); }
+    .sb-logo-txt { font-size: 15px; font-weight: 800; color: white; letter-spacing: -.3px; }
+    .sb-section { padding: 12px 12px 6px; }
+    .sb-section-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.28); font-weight: 700; padding: 0 8px 6px; }
+    .sb-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55);
+      transition: background .15s;
+    }
+    .sb-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+    .sb-item.active { background: rgba(30,91,255,.25); color: white; font-weight: 700; }
+    .sb-item .ico { width: 18px; text-align: center; font-size: 14px; flex-shrink: 0; }
+    .sb-bottom {
+      margin-top: auto; padding: 14px 12px;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .sb-user {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    }
+    .sb-user:hover { background: rgba(255,255,255,.06); }
+    .sb-av { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .sb-user-info { flex: 1; min-width: 0; }
+    .sb-user-name { font-size: 12px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-user-prog { font-size: 10px; color: rgba(255,255,255,.4); }
+    .sb-coach {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px; border-radius: 8px;
+      background: rgba(30,91,255,.15); cursor: pointer;
+    }
+    .sb-coach-av { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.15); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; position: relative; }
+    .sb-coach-av .online { width: 7px; height: 7px; background: #4ADE80; border-radius: 50%; border: 1.5px solid var(--gray-900); position: absolute; bottom: -1px; right: -1px; }
+    .sb-coach-info { flex: 1; }
+    .sb-coach-name { font-size: 11px; font-weight: 700; color: white; }
+    .sb-coach-sub { font-size: 10px; color: rgba(255,255,255,.45); }
+
+    /* ── MAIN AREA ── */
+    .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: var(--topbar);
+      background: white;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; flex-direction: column; gap: 1px; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--gray-900); }
+    .topbar-sub { font-size: 12px; color: var(--gray-400); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .streak-chip { display: flex; align-items: center; gap: 5px; background: #FEF3C7; border-radius: 20px; padding: 5px 12px; }
+    .streak-chip span { font-size: 13px; font-weight: 900; color: #B45309; }
+    .notif-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--gray-50); border: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; position: relative; }
+    .notif-btn .dot { width: 8px; height: 8px; background: var(--pink); border-radius: 50%; border: 1.5px solid white; position: absolute; top: -2px; right: -2px; }
+
+    /* ── CONTENT SCROLL ── */
+    .content-scroll {
+      flex: 1; overflow-y: auto; background: var(--gray-50);
+      padding: 24px 28px 40px;
+    }
+    .content-scroll::-webkit-scrollbar { width: 5px; }
+    .content-scroll::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
+
+    /* ── STATE VIEWS ── */
+    .hypo { display: none; flex-direction: column; gap: 18px; }
+    .hypo.on { display: flex; }
+
+    /* ── UTILS ── */
+    .annot {
+      background: #FFFDE7; border-left: 3px solid var(--orange);
+      padding: 7px 12px; border-radius: 0 6px 6px 0;
+      font-size: 11px; color: #92400E; line-height: 1.4;
+    }
+    .card {
+      background: white; border-radius: 14px;
+      border: 1px solid var(--gray-100);
+      box-shadow: 0 1px 8px rgba(0,0,0,.05);
+    }
+    .row { display: flex; gap: 18px; }
+    .col-1 { flex: 1; }
+    .col-2 { flex: 2; }
+    .col-3 { flex: 3; }
+    .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; font-weight: 800; }
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .btn-primary { background: var(--pink); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-size: 14px; font-weight: 800; cursor: pointer; }
+    .btn-primary:hover { background: #C0186F; }
+    .btn-ghost { background: white; color: var(--gray-500); border: 1.5px solid var(--gray-200); border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    /* ══════════════════════════════════════
+       V1 — COACH FIRST
+       ══════════════════════════════════════ */
+    .v1-hero {
+      background: linear-gradient(135deg, #1440CC 0%, #1E5BFF 50%, #4B7FFF 100%);
+      border-radius: 14px; padding: 28px 32px; color: white;
+      display: flex; gap: 32px; align-items: flex-start;
+      position: relative; overflow: hidden;
+    }
+    .v1-hero::before {
+      content: ''; position: absolute; right: -60px; top: -60px;
+      width: 280px; height: 280px; background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .v1-coach-block { display: flex; gap: 18px; flex: 1; }
+    .v1-av { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.2); border: 2.5px solid rgba(255,255,255,.5); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; }
+    .v1-coach-info { flex: 1; }
+    .v1-coach-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .6; margin-bottom: 4px; }
+    .v1-coach-name { font-size: 24px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 6px; }
+    .v1-coach-msg { font-size: 14px; opacity: .88; line-height: 1.55; max-width: 500px; }
+    .v1-online { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.15); border-radius: 20px; padding: 3px 11px; font-size: 11px; font-weight: 700; margin-top: 10px; }
+    .v1-online::before { content: '●'; color: #4ADE80; margin-right: 1px; }
+    .v1-session-card {
+      background: rgba(255,255,255,.15); border-radius: 12px; padding: 16px 20px;
+      display: flex; flex-direction: column; gap: 10px; min-width: 220px;
+    }
+    .v1-session-card h4 { font-size: 14px; font-weight: 800; }
+    .v1-session-card p { font-size: 12px; opacity: .7; }
+    .v1-session-btn { background: white; color: var(--blue); border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 800; cursor: pointer; align-self: flex-start; margin-top: 4px; }
+
+    .v1-msg-card { padding: 20px 24px; }
+    .v1-msg-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--blue); font-weight: 800; margin-bottom: 8px; }
+    .v1-msg-txt { font-size: 14px; color: var(--gray-700); line-height: 1.6; font-style: italic; margin-bottom: 14px; }
+    .v1-msg-cta { display: flex; gap: 10px; }
+    .v1-btn-reply { background: var(--blue); color: white; border: none; border-radius: 9px; padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .v1-btn-seen { background: white; color: var(--gray-500); border: 1.5px solid var(--gray-200); border-radius: 9px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .v1-action-card { padding: 22px 24px; }
+    .v1-action-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--pink); font-weight: 800; margin-bottom: 6px; }
+    .v1-action-title { font-size: 20px; font-weight: 900; color: var(--gray-900); letter-spacing: -.3px; margin-bottom: 6px; }
+    .v1-action-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-bottom: 18px; max-width: 480px; }
+    .v1-meta { display: flex; gap: 8px; margin-bottom: 18px; }
+    .v1-meta-chip { display: flex; align-items: center; gap: 4px; background: var(--gray-100); color: var(--gray-500); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+
+    .v1-locked-list { display: flex; flex-direction: column; gap: 0; }
+    .v1-locked { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--gray-50); cursor: pointer; }
+    .v1-locked:last-child { border-bottom: none; }
+    .v1-locked:hover { background: var(--gray-50); }
+    .v1-locked-ico { width: 36px; height: 36px; background: var(--gray-100); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .v1-locked-info { flex: 1; }
+    .v1-locked-info h4 { font-size: 13px; font-weight: 700; color: var(--gray-400); }
+    .v1-locked-info p { font-size: 11px; color: var(--gray-300); margin-top: 1px; }
+    .v1-locked-chevron { color: var(--gray-200); font-size: 16px; }
+
+    /* ══════════════════════════════════════
+       V2 — SCORE DU JOUR
+       ══════════════════════════════════════ */
+    .v2-scores-row { display: flex; gap: 14px; }
+    .v2-score-card { flex: 1; background: white; border-radius: 14px; padding: 18px 20px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); }
+    .v2-score-card .vsc-icon { font-size: 22px; margin-bottom: 8px; }
+    .v2-score-card .vsc-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); font-weight: 700; margin-bottom: 4px; }
+    .v2-score-card .vsc-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+    .v2-score-card .vsc-sub { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+    .v2-score-card .vsc-bar { height: 4px; background: var(--gray-100); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+    .v2-score-card .vsc-fill { height: 100%; border-radius: 2px; }
+
+    .v2-hero-card {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+      border-radius: 14px; padding: 28px 32px;
+      display: flex; align-items: center; gap: 40px; color: white;
+    }
+    .v2-ring-wrap { position: relative; width: 160px; height: 160px; flex-shrink: 0; }
+    .v2-ring-wrap svg { transform: rotate(-90deg); }
+    .v2-ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .v2-ring-num { font-size: 52px; font-weight: 900; color: #4ADE80; line-height: 1; letter-spacing: -3px; }
+    .v2-ring-lbl { font-size: 11px; opacity: .6; }
+    .v2-hero-info { flex: 1; }
+    .v2-date { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; opacity: .45; margin-bottom: 8px; }
+    .v2-hero-score-lbl { font-size: 18px; font-weight: 900; margin-bottom: 5px; }
+    .v2-hero-score-desc { font-size: 14px; opacity: .75; line-height: 1.5; margin-bottom: 18px; max-width: 360px; }
+    .v2-mini-row { display: flex; gap: 28px; }
+    .v2-mini .vm-val { font-size: 22px; font-weight: 900; }
+    .v2-mini .vm-lbl { font-size: 11px; opacity: .5; margin-top: 2px; }
+
+    .v2-carnet-banner {
+      background: linear-gradient(135deg, #1440CC, #3B7FFF);
+      border-radius: 14px; padding: 20px 24px; color: white;
+      display: flex; align-items: center; gap: 18px;
+    }
+    .v2-carnet-icon { width: 52px; height: 52px; background: rgba(255,255,255,.18); border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+    .v2-carnet-info { flex: 1; }
+    .v2-carnet-info h4 { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .v2-carnet-info p { font-size: 13px; opacity: .78; }
+    .v2-carnet-btn { background: white; color: var(--blue); border: none; border-radius: 10px; padding: 12px 22px; font-size: 14px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+
+    .v2-insight { background: var(--green-lt); border-radius: 14px; padding: 18px 22px; border-left: 4px solid var(--green); }
+    .v2-insight h4 { font-size: 14px; font-weight: 800; color: var(--green-dk); margin-bottom: 4px; }
+    .v2-insight p { font-size: 13px; color: var(--green-dk); opacity: .85; line-height: 1.5; }
+
+    /* ══════════════════════════════════════
+       V3 — PLAN DU JOUR
+       ══════════════════════════════════════ */
+    .v3-topbar-card {
+      background: white; border-radius: 14px; padding: 18px 24px;
+      border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .v3-greeting { font-size: 20px; font-weight: 900; color: var(--gray-900); }
+    .v3-streak { display: flex; align-items: center; gap: 6px; }
+    .v3-streak-chip { display: flex; align-items: center; gap: 6px; background: #FEF3C7; border-radius: 20px; padding: 6px 14px; }
+    .v3-streak-chip span { font-size: 14px; font-weight: 900; color: #B45309; }
+    .v3-week { display: flex; gap: 8px; margin-left: 20px; }
+    .v3-day { width: 40px; height: 40px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; gap: 1px; background: var(--gray-100); color: var(--gray-400); }
+    .v3-day.done { background: var(--green); color: white; }
+    .v3-day.today { background: var(--blue); color: white; box-shadow: 0 0 0 3px var(--blue-lt); }
+
+    .v3-checkin {
+      background: linear-gradient(135deg, var(--pink), #B0006A);
+      border-radius: 14px; padding: 24px 28px; color: white;
+    }
+    .v3-checkin-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .7; margin-bottom: 5px; }
+    .v3-checkin h4 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+    .v3-checkin p { font-size: 14px; opacity: .82; line-height: 1.5; margin-bottom: 18px; max-width: 500px; }
+    .v3-checkin-btn { background: white; color: var(--pink); border: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 800; cursor: pointer; }
+
+    .v3-plan-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .v3-plan-title { font-size: 16px; font-weight: 800; color: var(--gray-900); }
+    .v3-plan-link { font-size: 13px; color: var(--blue); font-weight: 600; cursor: pointer; }
+
+    .v3-main-action { background: white; border-radius: 14px; padding: 22px 24px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); margin-bottom: 12px; }
+    .v3-action-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--pink); font-weight: 800; margin-bottom: 6px; }
+    .v3-action-title { font-size: 18px; font-weight: 900; color: var(--gray-900); letter-spacing: -.2px; margin-bottom: 5px; }
+    .v3-action-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-bottom: 14px; }
+    .v3-meta { display: flex; gap: 8px; margin-bottom: 16px; }
+    .v3-meta-chip { display: flex; align-items: center; gap: 4px; background: var(--gray-100); color: var(--gray-500); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+
+    .v3-tasks { display: flex; flex-direction: column; gap: 8px; }
+    .v3-task { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-radius: 10px; border: 1px solid var(--gray-100); cursor: pointer; }
+    .v3-task.done-t { opacity: .5; }
+    .v3-task-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+    .v3-task.done-t .v3-task-circle { background: var(--green); border-color: var(--green); color: white; }
+    .v3-task-lbl { flex: 1; font-size: 14px; font-weight: 600; color: var(--gray-900); }
+    .v3-task.done-t .v3-task-lbl { text-decoration: line-through; color: var(--gray-400); }
+    .v3-task-sub { font-size: 12px; color: var(--gray-400); }
+
+    .v3-prog-card { background: white; border-radius: 14px; padding: 20px 22px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); margin-bottom: 14px; }
+    .v3-prog-hd { font-size: 14px; font-weight: 800; color: var(--gray-900); margin-bottom: 14px; }
+    .v3-prog-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+    .v3-prog-row:not(:last-child) { border-bottom: 1px solid var(--gray-50); }
+    .v3-prog-ico { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .v3-prog-meta { flex: 1; }
+    .v3-prog-meta h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 1px; }
+    .v3-prog-meta span { font-size: 11px; color: var(--gray-400); }
+    .v3-prog-right { text-align: right; min-width: 70px; }
+    .v3-prog-bar { height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .v3-prog-fill { height: 100%; border-radius: 3px; }
+    .v3-prog-pct { font-size: 13px; font-weight: 900; }
+
+    .v3-coach-card { background: var(--blue-lt); border-radius: 14px; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
+    .v3-coach-av2 { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid rgba(30,91,255,.3); flex-shrink: 0; }
+    .v3-coach-body { flex: 1; }
+    .v3-coach-name { font-size: 12px; font-weight: 800; color: var(--blue-dk); margin-bottom: 4px; }
+    .v3-coach-msg2 { font-size: 13px; color: var(--blue-dk); line-height: 1.5; margin-bottom: 12px; }
+    .v3-coach-btn2 { background: var(--blue); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* ══════════════════════════════════════
+       V4 — MOMENTUM
+       ══════════════════════════════════════ */
+    .v4-hero {
+      background: linear-gradient(135deg, #0F3B2E 0%, #166534 55%, #22C55E 100%);
+      border-radius: 14px; padding: 28px 34px; color: white;
+    }
+    .v4-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .v4-hero-week { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; opacity: .55; }
+    .v4-hero-streak { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.15); border-radius: 20px; padding: 5px 13px; font-size: 13px; font-weight: 900; }
+    .v4-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); border-radius: 8px; padding: 5px 13px; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+    .v4-headline { font-size: 26px; font-weight: 900; line-height: 1.25; letter-spacing: -.4px; margin-bottom: 7px; max-width: 700px; }
+    .v4-sub { font-size: 14px; opacity: .82; line-height: 1.5; }
+
+    .v4-arc-card { background: white; border-radius: 14px; padding: 22px 24px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); }
+    .v4-arc-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .v4-arc-title { font-size: 14px; font-weight: 800; color: var(--gray-900); }
+    .v4-arc-sub { font-size: 12px; color: var(--gray-400); }
+    .v4-arc-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; margin-bottom: 12px; }
+    .v4-wk { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+    .v4-wk-bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; }
+    .done-bar { background: var(--green); }
+    .curr-bar { background: var(--blue); box-shadow: 0 0 0 3px var(--blue-lt); }
+    .fut-bar { background: repeating-linear-gradient(45deg, var(--gray-100) 0, var(--gray-100) 3px, white 3px, white 6px); border: 1.5px dashed var(--gray-200); }
+    .v4-wk-lbl { font-size: 10px; font-weight: 700; color: var(--gray-400); }
+    .v4-wk-val { font-size: 10px; font-weight: 800; }
+    .v4-arc-foot { font-size: 12px; color: var(--gray-500); border-top: 1px solid var(--gray-100); padding-top: 10px; margin-top: 4px; }
+    .v4-arc-foot strong { color: var(--green-dk); }
+
+    .v4-scores-row { display: flex; gap: 14px; }
+    .v4-score { flex: 1; background: white; border-radius: 14px; padding: 18px 20px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); }
+    .v4-score .vs-icon { font-size: 22px; margin-bottom: 8px; }
+    .v4-score .vs-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+    .v4-score .vs-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); font-weight: 700; margin-top: 3px; }
+    .v4-score .vs-delta { font-size: 12px; font-weight: 700; margin-top: 3px; }
+
+    .v4-impact-card { background: white; border-radius: 14px; padding: 22px 24px; border: 1px solid var(--gray-100); box-shadow: 0 1px 8px rgba(0,0,0,.05); }
+    .v4-impact-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .v4-impact-hd h4 { font-size: 14px; font-weight: 800; color: var(--gray-900); }
+    .v4-impact-hd span { font-size: 12px; color: var(--gray-400); }
+    .v4-impact-row { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--gray-50); }
+    .v4-impact-row:last-child { border-bottom: none; }
+    .v4-impact-lbl { flex: 1; font-size: 13px; font-weight: 600; color: var(--gray-700); }
+    .v4-impact-bar { width: 120px; }
+    .v4-impact-track { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; margin-bottom: 2px; }
+    .v4-impact-fill { height: 100%; border-radius: 3px; }
+    .v4-impact-fill.p { background: linear-gradient(90deg, var(--green), #4ADE80); }
+    .v4-impact-fill.n { background: linear-gradient(90deg, #EF4444, #F87171); }
+    .v4-impact-val { font-size: 13px; font-weight: 800; width: 40px; text-align: right; }
+    .v4-impact-val.p { color: var(--green-dk); }
+    .v4-impact-val.n { color: #EF4444; }
+
+    .v4-action-card {
+      background: var(--pink); border-radius: 14px; padding: 20px 24px;
+      color: white; display: flex; align-items: center; gap: 18px;
+    }
+    .v4-action-icon { width: 48px; height: 48px; background: rgba(255,255,255,.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .v4-action-info { flex: 1; }
+    .v4-action-info h4 { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .v4-action-info p { font-size: 13px; opacity: .82; }
+    .v4-action-btn { background: white; color: var(--pink); border: none; border-radius: 10px; padding: 11px 20px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+
+  </style>
+</head>
+<body>
+
+<!-- ── META TABS ── -->
+<div class="meta-bar">
+  <div class="meta-label">LineCoaching · Desktop</div>
+  <button class="hypo-tab active" onclick="show('v1',this)">
+    <div class="ht-bar" style="background:#1E5BFF"></div>
+    <div class="ht-body"><div class="ht-v">Hypothèse A</div><div class="ht-n">Coach First</div><div class="ht-r">↳ Sleepio</div></div>
+  </button>
+  <button class="hypo-tab" onclick="show('v2',this)">
+    <div class="ht-bar" style="background:#22C55E"></div>
+    <div class="ht-body"><div class="ht-v">Hypothèse B</div><div class="ht-n">Score du jour</div><div class="ht-r">↳ WHOOP · Oura</div></div>
+  </button>
+  <button class="hypo-tab" onclick="show('v3',this)">
+    <div class="ht-bar" style="background:#E91E8C"></div>
+    <div class="ht-body"><div class="ht-v">Hypothèse C</div><div class="ht-n">Plan du jour</div><div class="ht-r">↳ Noom · Kwit</div></div>
+  </button>
+  <button class="hypo-tab" onclick="show('v4',this)">
+    <div class="ht-bar" style="background:#F59E0B"></div>
+    <div class="ht-body"><div class="ht-v">Hypothèse D</div><div class="ht-n">Momentum</div><div class="ht-r">↳ Sleepio Weekly</div></div>
+  </button>
+</div>
+
+<!-- ── BROWSER FRAME ── -->
+<div class="browser-wrap">
+  <div class="browser-chrome">
+    <div class="bc-dot" style="background:#FF5F57"></div>
+    <div class="bc-dot" style="background:#FEBC2E"></div>
+    <div class="bc-dot" style="background:#28C840"></div>
+    <div class="bc-url">app.linecoaching.com/accueil</div>
+  </div>
+
+  <div class="browser-body">
+    <div class="app-shell">
+
+      <!-- SIDEBAR (commun) -->
+      <div class="sidebar">
+        <div class="sb-logo">
+          <div class="sb-logo-dot"></div>
+          <div class="sb-logo-txt">LineCoaching</div>
+        </div>
+
+        <div class="sb-section">
+          <div class="sb-section-lbl">Navigation</div>
+          <div class="sb-item active"><span class="ico">🏠</span> Accueil</div>
+          <div class="sb-item"><span class="ico">📋</span> Mon programme</div>
+          <div class="sb-item"><span class="ico">📓</span> Mes carnets</div>
+          <div class="sb-item"><span class="ico">📊</span> Statistiques</div>
+        </div>
+
+        <div class="sb-section">
+          <div class="sb-section-lbl">Communauté</div>
+          <div class="sb-item"><span class="ico">🏆</span> Défis</div>
+          <div class="sb-item"><span class="ico">👥</span> Forum</div>
+          <div class="sb-item"><span class="ico">🎥</span> Webinars</div>
+          <div class="sb-item"><span class="ico">📰</span> Le Mag'</div>
+        </div>
+
+        <div class="sb-bottom">
+          <div class="sb-coach">
+            <div class="sb-coach-av">👩‍⚕️<div class="online"></div></div>
+            <div class="sb-coach-info">
+              <div class="sb-coach-name">Marie — Coach</div>
+              <div class="sb-coach-sub">En ligne · Répond en < 2h</div>
+            </div>
+          </div>
+          <div class="sb-user">
+            <div class="sb-av">👤</div>
+            <div class="sb-user-info">
+              <div class="sb-user-name">Aline Mercier</div>
+              <div class="sb-user-prog">Semaine 6 · Programme LC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN AREA -->
+      <div class="main-area">
+
+        <!-- TOPBAR (commun) -->
+        <div class="topbar">
+          <div class="topbar-left">
+            <div class="topbar-title">Bonjour Aline ☀️</div>
+            <div class="topbar-sub">Vendredi 13 juin · Semaine 6 sur 8</div>
+          </div>
+          <div class="topbar-right">
+            <div class="streak-chip">🔥 <span>12 jours</span></div>
+            <div class="notif-btn">🔔<div class="dot"></div></div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content-scroll">
+
+          <!-- ══ V1 COACH FIRST ══ -->
+          <div class="hypo on" id="v1">
+
+            <div class="annot">✦ Hypothèse A — La relation coach est le premier élément visible. North star : différenciateur humain vs apps génériques (pattern Sleepio).</div>
+
+            <!-- Hero coach -->
+            <div class="v1-hero">
+              <div class="v1-coach-block">
+                <div class="v1-av">👩‍⚕️</div>
+                <div class="v1-coach-info">
+                  <div class="v1-coach-tag">Votre coach · Programme LC Nutrition</div>
+                  <div class="v1-coach-name">Marie Lefebvre</div>
+                  <div class="v1-coach-msg">Je viens de regarder votre carnet de la semaine — vous faites de vrais progrès sur la satiété. Vos repas sans écran ont amélioré votre score de 28%. J'ai une suggestion concrète pour ce soir.</div>
+                  <div class="v1-online">En ligne maintenant</div>
+                </div>
+              </div>
+              <div class="v1-session-card">
+                <div style="font-size:12px;opacity:.65;text-transform:uppercase;letter-spacing:.6px;">Prochaine séance</div>
+                <h4>Visio · Lun. 17 juin · 18h00</h4>
+                <p>45 min · Bilan semaine 6 + objectifs S7</p>
+                <button class="v1-session-btn">Confirmer ma présence</button>
+              </div>
+            </div>
+
+            <!-- Message + action -->
+            <div class="row">
+              <div class="col-2">
+                <div class="card">
+                  <div class="v1-msg-card">
+                    <div class="v1-msg-tag">💬 Message de Marie · Ce matin à 8h41</div>
+                    <div class="v1-msg-txt">"Aline, cette semaine vous avez respecté la satiété dans 74% de vos repas — c'est votre record ! Pour aller plus loin, j'aimerais que vous essayiez de poser la fourchette entre chaque bouchée ce soir au dîner. Dites-moi comment ça s'est passé."</div>
+                    <div class="v1-msg-cta">
+                      <button class="v1-btn-reply">Répondre à Marie</button>
+                      <button class="v1-btn-seen">Marquer comme lu</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-1">
+                <div class="card">
+                  <div class="v1-action-card">
+                    <div class="v1-action-tag">📋 Étape A5 · Recommandée par Marie</div>
+                    <div class="v1-action-title">Je découvre mes causes d'excès</div>
+                    <div class="v1-action-desc">Comprendre pourquoi vous mangez sous l'effet des émotions — activité clé de la semaine 5.</div>
+                    <div class="v1-meta">
+                      <span class="v1-meta-chip">⏱ 3 min</span>
+                      <span class="v1-meta-chip">📖 Activité</span>
+                    </div>
+                    <button class="btn-primary" style="width:100%">Commencer →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sections verrouillées -->
+            <div class="card">
+              <div style="padding:14px 20px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:800;color:var(--gray-400);">Disponibles après votre première étape</div>
+              <div class="v1-locked-list">
+                <div class="v1-locked">
+                  <div class="v1-locked-ico">🏆</div>
+                  <div class="v1-locked-info"><h4>Défis de la semaine</h4><p>Validés par Marie après l'étape A5</p></div>
+                  <span class="v1-locked-chevron">›</span>
+                </div>
+                <div class="v1-locked">
+                  <div class="v1-locked-ico">📊</div>
+                  <div class="v1-locked-info"><h4>Mes statistiques complètes</h4><p>Mise à jour chaque lundi</p></div>
+                  <span class="v1-locked-chevron">›</span>
+                </div>
+                <div class="v1-locked">
+                  <div class="v1-locked-ico">🎥</div>
+                  <div class="v1-locked-info"><h4>Webinar · Alimentation émotionnelle</h4><p>Jeudi 20 juin à 19h00</p></div>
+                  <span class="v1-locked-chevron">›</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /v1 -->
+
+          <!-- ══ V2 SCORE DU JOUR ══ -->
+          <div class="hypo" id="v2">
+
+            <div class="annot">✦ Hypothèse B — Un score synthétique en héros, basé uniquement sur les carnets. North star : "Je sais comment je me porte en 2 secondes" (WHOOP/Oura sans capteur).</div>
+
+            <!-- 4 metrics top -->
+            <div class="v2-scores-row">
+              <div class="v2-score-card">
+                <div class="vsc-icon">🍽</div>
+                <div class="vsc-lbl">Faim respectée</div>
+                <div class="vsc-val" style="color:var(--green-dk)">82%</div>
+                <div class="vsc-sub">↑ +14 pts vs S5</div>
+                <div class="vsc-bar"><div class="vsc-fill" style="width:82%;background:var(--green)"></div></div>
+              </div>
+              <div class="v2-score-card">
+                <div class="vsc-icon">✋</div>
+                <div class="vsc-lbl">Satiété respectée</div>
+                <div class="vsc-val" style="color:var(--green-dk)">74%</div>
+                <div class="vsc-sub">↑ +9 pts vs S5</div>
+                <div class="vsc-bar"><div class="vsc-fill" style="width:74%;background:var(--green)"></div></div>
+              </div>
+              <div class="v2-score-card">
+                <div class="vsc-icon">💛</div>
+                <div class="vsc-lbl">Manger émotionnel</div>
+                <div class="vsc-val" style="color:var(--orange)">3 fois</div>
+                <div class="vsc-sub">↓ −2 vs S5</div>
+                <div class="vsc-bar"><div class="vsc-fill" style="width:30%;background:var(--orange)"></div></div>
+              </div>
+              <div class="v2-score-card">
+                <div class="vsc-icon">📉</div>
+                <div class="vsc-lbl">Évolution poids</div>
+                <div class="vsc-val" style="color:var(--blue)">91.0 kg</div>
+                <div class="vsc-sub">−4.2 kg depuis le J1</div>
+                <div class="vsc-bar"><div class="vsc-fill" style="width:65%;background:var(--blue)"></div></div>
+              </div>
+            </div>
+
+            <!-- Hero score + carnet -->
+            <div class="row">
+              <div style="flex:1.4">
+                <div class="v2-hero-card">
+                  <div class="v2-ring-wrap">
+                    <svg width="160" height="160" viewBox="0 0 160 160">
+                      <circle cx="80" cy="80" r="68" stroke-width="12" fill="none" stroke="rgba(255,255,255,.1)"/>
+                      <circle cx="80" cy="80" r="68" stroke-width="12" fill="none"
+                        stroke="#4ADE80" stroke-linecap="round"
+                        stroke-dasharray="427.3" stroke-dashoffset="107"/>
+                    </svg>
+                    <div class="v2-ring-center">
+                      <div class="v2-ring-num">75</div>
+                      <div class="v2-ring-lbl">Score sensations</div>
+                    </div>
+                  </div>
+                  <div class="v2-hero-info">
+                    <div class="v2-date">Vendredi 13 juin · Semaine 6</div>
+                    <div class="v2-hero-score-lbl">Bien · En progression 📈</div>
+                    <div class="v2-hero-score-desc">Vous avez respecté faim & satiété dans <strong>75% de vos repas</strong> cette semaine — votre meilleur score depuis le début du programme.</div>
+                    <div class="v2-mini-row">
+                      <div class="v2-mini">
+                        <div class="vm-val" style="color:#F472B6">−4.2kg</div>
+                        <div class="vm-lbl">depuis J1</div>
+                      </div>
+                      <div class="v2-mini">
+                        <div class="vm-val" style="color:#60A5FA">3</div>
+                        <div class="vm-lbl">séances sport</div>
+                      </div>
+                      <div class="v2-mini">
+                        <div class="vm-val" style="color:#FBBF24">12 🔥</div>
+                        <div class="vm-lbl">jours streak</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div class="v2-carnet-banner" style="height:100%">
+                  <div class="v2-carnet-icon">📓</div>
+                  <div class="v2-carnet-info">
+                    <h4>Carnet du déjeuner</h4>
+                    <p>Non rempli · Chaque repas améliore votre score de demain</p>
+                    <div style="margin-top:8px;font-size:11px;opacity:.7;">⚡ Remplir maintenant = +3 pts score demain</div>
+                  </div>
+                  <button class="v2-carnet-btn">Remplir →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Insight + action -->
+            <div class="row">
+              <div class="col-2">
+                <div class="v2-insight">
+                  <h4>🌟 Insight de la semaine · Marie</h4>
+                  <p>Vos repas sans écran améliorent votre score faim/satiété de <strong>+28%</strong> en moyenne. C'est votre comportement le plus impactant. Essayez d'en faire une règle systématique cette semaine.</p>
+                </div>
+              </div>
+              <div class="col-1">
+                <div class="card" style="padding:20px 22px">
+                  <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--pink);font-weight:800;margin-bottom:6px;">📋 Action du jour</div>
+                  <div style="font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:4px;">Étape A5 · Programme</div>
+                  <div style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">Je découvre mes causes d'excès · 3 min</div>
+                  <button class="btn-primary" style="width:100%">Commencer →</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /v2 -->
+
+          <!-- ══ V3 PLAN DU JOUR ══ -->
+          <div class="hypo" id="v3">
+
+            <div class="annot">✦ Hypothèse C — La routine quotidienne au centre. North star : chaque jour une habitude = résultat durable (Noom + Kwit + Duolingo streak).</div>
+
+            <!-- Top bar streak + week -->
+            <div class="v3-topbar-card">
+              <div class="v3-greeting">Bonjour Aline ☀️</div>
+              <div class="v3-streak">
+                <div class="v3-streak-chip">🔥 <span>12 jours de streak</span></div>
+                <div class="v3-week">
+                  <div class="v3-day done">L<br>✓</div>
+                  <div class="v3-day done">M<br>✓</div>
+                  <div class="v3-day done">M<br>✓</div>
+                  <div class="v3-day done">J<br>✓</div>
+                  <div class="v3-day today">V<br>·</div>
+                  <div class="v3-day">S</div>
+                  <div class="v3-day">D</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkin + plan + progress -->
+            <div class="row">
+
+              <!-- Left col: check-in + plan -->
+              <div style="flex:1.3;display:flex;flex-direction:column;gap:14px">
+                <div class="v3-checkin">
+                  <div class="v3-checkin-lbl">📓 Carnet du déjeuner</div>
+                  <h4>Avant de manger, posez-vous</h4>
+                  <p>Avez-vous vraiment faim ? Sur une échelle de 1 à 10, où en êtes-vous avant ce repas ? Prendre conscience avant de manger, c'est le cœur de l'alimentation intuitive.</p>
+                  <button class="v3-checkin-btn">Remplir mon carnet →</button>
+                </div>
+
+                <div>
+                  <div class="v3-plan-hd">
+                    <div class="v3-plan-title">Plan du jour</div>
+                    <a class="v3-plan-link">Voir tout le programme</a>
+                  </div>
+                  <div class="v3-main-action">
+                    <div class="v3-action-tag">📋 Étape A5 · Alimentation intuitive</div>
+                    <div class="v3-action-title">Je découvre mes causes d'excès</div>
+                    <div class="v3-action-desc">Comprendre pourquoi vous mangez sous l'effet des émotions — activité clé de la semaine 5 recommandée par Marie.</div>
+                    <div class="v3-meta">
+                      <span class="v3-meta-chip">⏱ 3 min</span>
+                      <span class="v3-meta-chip">📖 Activité</span>
+                    </div>
+                    <button class="btn-primary">Commencer →</button>
+                  </div>
+                  <div class="v3-tasks">
+                    <div class="v3-task done-t">
+                      <div class="v3-task-circle">✓</div>
+                      <div class="v3-task-lbl">Carnet du petit-déjeuner</div>
+                      <div class="v3-task-sub">Rempli à 8h12</div>
+                    </div>
+                    <div class="v3-task">
+                      <div class="v3-task-circle"></div>
+                      <div class="v3-task-lbl">Carnet du déjeuner</div>
+                      <div class="v3-task-sub">À faire</div>
+                    </div>
+                    <div class="v3-task">
+                      <div class="v3-task-circle"></div>
+                      <div class="v3-task-lbl">Carnet du dîner</div>
+                      <div class="v3-task-sub">Ce soir</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right col: progress + coach -->
+              <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+                <div class="v3-prog-card">
+                  <div class="v3-prog-hd">Ma progression · Semaine 6</div>
+                  <div class="v3-prog-row">
+                    <div class="v3-prog-ico" style="background:var(--green-lt)">🍽</div>
+                    <div class="v3-prog-meta"><h5>Sensations alim.</h5><span>75% — record perso</span></div>
+                    <div class="v3-prog-right">
+                      <div class="v3-prog-pct" style="color:var(--green-dk)">75% <span style="font-size:11px;color:var(--green)">+12</span></div>
+                      <div class="v3-prog-bar"><div class="v3-prog-fill" style="width:75%;background:var(--green)"></div></div>
+                    </div>
+                  </div>
+                  <div class="v3-prog-row">
+                    <div class="v3-prog-ico" style="background:#FFF8F0">💛</div>
+                    <div class="v3-prog-meta"><h5>Manger émotionnel</h5><span>3 fois cette semaine</span></div>
+                    <div class="v3-prog-right">
+                      <div class="v3-prog-pct" style="color:var(--orange)">↓ −2</div>
+                      <div class="v3-prog-bar"><div class="v3-prog-fill" style="width:30%;background:var(--orange)"></div></div>
+                    </div>
+                  </div>
+                  <div class="v3-prog-row">
+                    <div class="v3-prog-ico" style="background:var(--blue-lt)">📉</div>
+                    <div class="v3-prog-meta"><h5>Évolution poids</h5><span>91.0 kg · −4.2 kg depuis J1</span></div>
+                    <div class="v3-prog-right">
+                      <div class="v3-prog-pct" style="color:var(--blue)">Durable</div>
+                      <div class="v3-prog-bar"><div class="v3-prog-fill" style="width:60%;background:var(--blue)"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="v3-coach-card">
+                  <div class="v3-coach-av2">👩‍⚕️</div>
+                  <div class="v3-coach-body">
+                    <div class="v3-coach-name">Marie · Votre coach</div>
+                    <div class="v3-coach-msg2">"Super semaine Aline ! Votre streak de 12 jours montre un vrai engagement. Les repas sans écran ont fait une vraie différence — continuez ! On en parle lundi."</div>
+                    <button class="v3-coach-btn2">Répondre à Marie</button>
+                  </div>
+                </div>
+
+                <div class="card" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
+                  <div style="width:40px;height:40px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📅</div>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:800;color:var(--gray-900)">Visio avec Marie · Lun. 17 juin</div>
+                    <div style="font-size:12px;color:var(--gray-400)">Dans 3 jours · 45 min</div>
+                  </div>
+                  <button class="btn-ghost" style="font-size:12px;padding:8px 14px">Confirmer</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div><!-- /v3 -->
+
+          <!-- ══ V4 MOMENTUM ══ -->
+          <div class="hypo" id="v4">
+
+            <div class="annot">✦ Hypothèse D — L'histoire de la transformation en héros. North star : "Je vois ma progression et ça prouve que ça marche" (Sleepio Weekly Review + WHOOP Journal).</div>
+
+            <!-- Hero narrative -->
+            <div class="v4-hero">
+              <div class="v4-hero-top">
+                <div class="v4-hero-week">Bilan · Semaine 6 sur 8</div>
+                <div class="v4-hero-streak">🔥 12 jours</div>
+              </div>
+              <div class="v4-badge">✨ Votre meilleur score depuis le début</div>
+              <div class="v4-headline">Cette semaine, vous avez respecté votre faim dans 75% de vos repas</div>
+              <div class="v4-sub">C'est +12 points vs la semaine dernière — et −4.2 kg depuis le jour 1, sans jamais vous priver ni compter une calorie.</div>
+            </div>
+
+            <!-- Arc chart + impact table -->
+            <div class="row">
+              <div style="flex:1.4">
+                <div class="v4-arc-card">
+                  <div class="v4-arc-hd">
+                    <div class="v4-arc-title">Progression sur 8 semaines</div>
+                    <div class="v4-arc-sub">Score sensations alimentaires</div>
+                  </div>
+                  <div class="v4-arc-chart">
+                    <div class="v4-wk"><div class="v4-wk-bar done-bar" style="height:50px"></div><div class="v4-wk-lbl">S1</div><div class="v4-wk-val" style="color:var(--green-dk)">42%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar done-bar" style="height:62px"></div><div class="v4-wk-lbl">S2</div><div class="v4-wk-val" style="color:var(--green-dk)">52%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar done-bar" style="height:72px"></div><div class="v4-wk-lbl">S3</div><div class="v4-wk-val" style="color:var(--green-dk)">60%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar done-bar" style="height:79px"></div><div class="v4-wk-lbl">S4</div><div class="v4-wk-val" style="color:var(--green-dk)">66%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar done-bar" style="height:75px"></div><div class="v4-wk-lbl">S5</div><div class="v4-wk-val" style="color:var(--green-dk)">63%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar curr-bar" style="height:90px"></div><div class="v4-wk-lbl" style="color:var(--blue);font-weight:900">S6 ←</div><div class="v4-wk-val" style="color:var(--blue);font-weight:900">75%</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar fut-bar" style="height:100px"></div><div class="v4-wk-lbl" style="color:var(--gray-300)">S7</div><div class="v4-wk-val" style="color:var(--gray-300)">?</div></div>
+                    <div class="v4-wk"><div class="v4-wk-bar fut-bar" style="height:110px"></div><div class="v4-wk-lbl" style="color:var(--gray-300)">S8</div><div class="v4-wk-val" style="color:var(--gray-300)">?</div></div>
+                  </div>
+                  <div class="v4-arc-foot">📍 Vous êtes ici · Semaine 6 sur 8 · <strong>+33 points depuis le début du programme</strong></div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div class="v4-impact-card">
+                  <div class="v4-impact-hd">
+                    <h4>Ce qui vous aide le plus</h4>
+                    <span>90 jours · Données carnets</span>
+                  </div>
+                  <div class="v4-impact-row">
+                    <div class="v4-impact-lbl">🥗 Repas sans écran</div>
+                    <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill p" style="width:85%"></div></div></div>
+                    <div class="v4-impact-val p">+28%</div>
+                  </div>
+                  <div class="v4-impact-row">
+                    <div class="v4-impact-lbl">⏰ Horaires réguliers</div>
+                    <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill p" style="width:70%"></div></div></div>
+                    <div class="v4-impact-val p">+22%</div>
+                  </div>
+                  <div class="v4-impact-row">
+                    <div class="v4-impact-lbl">🚶 30 min de marche</div>
+                    <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill p" style="width:52%"></div></div></div>
+                    <div class="v4-impact-val p">+17%</div>
+                  </div>
+                  <div class="v4-impact-row">
+                    <div class="v4-impact-lbl">😰 Stress élevé</div>
+                    <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill n" style="width:55%"></div></div></div>
+                    <div class="v4-impact-val n">−18%</div>
+                  </div>
+                  <div class="v4-impact-row">
+                    <div class="v4-impact-lbl">🌙 Dîner tardif (&gt;21h)</div>
+                    <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill n" style="width:38%"></div></div></div>
+                    <div class="v4-impact-val n">−12%</div>
+                  </div>
+                  <div style="margin-top:12px;font-size:11px;color:var(--gray-400)">Corrélation calculée sur vos 90 derniers jours de carnets · Sans capteur</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3 scores + action -->
+            <div class="row">
+              <div class="v4-scores-row" style="flex:2">
+                <div class="v4-score">
+                  <div class="vs-icon">🍽</div>
+                  <div class="vs-val" style="color:var(--green-dk)">75%</div>
+                  <div class="vs-lbl">Sensations</div>
+                  <div class="vs-delta" style="color:var(--green)">+12 pts cette semaine</div>
+                </div>
+                <div class="v4-score">
+                  <div class="vs-icon">📉</div>
+                  <div class="vs-val" style="color:var(--blue)">−4.2<span style="font-size:16px">kg</span></div>
+                  <div class="vs-lbl">Évolution poids</div>
+                  <div class="vs-delta" style="color:var(--blue)">Progression durable</div>
+                </div>
+                <div class="v4-score">
+                  <div class="vs-icon">💛</div>
+                  <div class="vs-val" style="color:var(--orange)">3</div>
+                  <div class="vs-lbl">Manger émotionnel</div>
+                  <div class="vs-delta" style="color:var(--green)">↓ −2 vs S5</div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div class="v4-action-card">
+                  <div class="v4-action-icon">▶</div>
+                  <div class="v4-action-info">
+                    <h4>Continuer l'étape A5</h4>
+                    <p>Je découvre mes causes d'excès · 3 min</p>
+                  </div>
+                  <button class="v4-action-btn">Commencer →</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /v4 -->
+
+        </div><!-- /content-scroll -->
+      </div><!-- /main-area -->
+    </div><!-- /app-shell -->
+  </div><!-- /browser-body -->
+</div><!-- /browser-wrap -->
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.hypo').forEach(s => s.classList.remove('on'));
+    document.querySelectorAll('.hypo-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('on');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

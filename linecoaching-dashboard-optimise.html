@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LineCoaching · Dashboard Optimisé</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:        #1E5BFF;
+      --blue-dark:   #1440CC;
+      --blue-light:  #EBF0FF;
+      --pink:        #E91E8C;
+      --pink-light:  #FFF0F8;
+      --green:       #2ECC71;
+      --orange:      #F59E0B;
+      --gray-50:     #F8F9FA;
+      --gray-100:    #F1F3F5;
+      --gray-200:    #E2E8F0;
+      --gray-400:    #94A3B8;
+      --gray-500:    #64748B;
+      --gray-700:    #334155;
+      --gray-900:    #0F172A;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 2px 12px rgba(0,0,0,0.07);
+      --shadow-md:   0 4px 20px rgba(0,0,0,0.11);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      background: #E8EDF8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      width: 100%;
+      background: #0F172A;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .topbar-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .toggle-group {
+      display: flex;
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .toggle-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 18px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      transition: all .2s;
+    }
+    .toggle-btn.active {
+      background: white;
+      color: var(--gray-900);
+      font-weight: 700;
+    }
+
+    /* ── PHONE SHELL ── */
+    .phone {
+      width: 390px;
+      margin: 20px 0 40px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── APP HEADER ── */
+    .app-header {
+      background: white;
+      padding: 14px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: -0.4px;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .avatar-chip {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      position: relative;
+    }
+    .notif-dot {
+      width: 7px; height: 7px;
+      background: var(--pink);
+      border-radius: 50%;
+      border: 1.5px solid white;
+      position: absolute; top: -1px; right: -1px;
+    }
+    .bell { font-size: 18px; cursor: pointer; }
+
+    /* ── SCROLL AREA ── */
+    .scroll-area {
+      overflow-y: auto;
+      max-height: 680px;
+      padding-bottom: 70px;
+      scroll-behavior: smooth;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* ── STATES ── */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    /* ── ANNOTATIONS ── */
+    .annot {
+      margin: 6px 18px;
+      padding: 7px 11px;
+      background: #FFFDE7;
+      border-left: 3px solid #F59E0B;
+      border-radius: 0 6px 6px 0;
+      font-size: 10.5px;
+      color: #92400E;
+      line-height: 1.4;
+    }
+
+    /* ============================
+       STATE 1 · PREMIER ACCÈS
+       ============================ */
+
+    /* Coach hero */
+    .coach-hero {
+      background: linear-gradient(145deg, #1440CC 0%, #1E5BFF 60%, #3D7EFF 100%);
+      padding: 24px 20px 20px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .coach-hero::after {
+      content: '';
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+    .hero-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .coach-avatar-lg {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: 2.5px solid rgba(255,255,255,0.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .hero-text { flex: 1; }
+    .coach-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      opacity: .65;
+      margin-bottom: 4px;
+    }
+    .hero-greeting {
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 6px;
+      letter-spacing: -.3px;
+    }
+    .hero-msg {
+      font-size: 13px;
+      opacity: .82;
+      line-height: 1.5;
+    }
+    .program-pill {
+      background: rgba(255,255,255,0.13);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .prog-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .prog-info { flex: 1; }
+    .prog-info h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .prog-info p { font-size: 11px; opacity: .72; }
+    .prog-time {
+      font-size: 11px;
+      background: rgba(255,255,255,0.16);
+      padding: 4px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* QPP card */
+    .section-pad { padding: 20px 18px 0; }
+    .eyebrow {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-100);
+    }
+    .steps-track {
+      display: flex; gap: 5px;
+      margin-bottom: 14px;
+    }
+    .step-bar {
+      flex: 1; height: 3px;
+      background: var(--gray-100);
+      border-radius: 2px;
+    }
+    .step-bar.active { background: var(--blue); }
+    .card-title { font-size: 17px; font-weight: 800; color: var(--gray-900); margin-bottom: 6px; letter-spacing: -.3px; }
+    .card-sub { font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-bottom: 14px; }
+    .time-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .btn-primary {
+      display: block; width: 100%;
+      padding: 15px 16px;
+      background: var(--pink);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      letter-spacing: -.2px;
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-primary:hover { box-shadow: 0 4px 16px rgba(233,30,140,.35); }
+
+    .btn-ghost {
+      display: block; width: 100%;
+      padding: 12px 16px;
+      background: transparent;
+      color: var(--gray-500);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Session card */
+    .session-card {
+      margin: 14px 18px 0;
+      background: var(--blue-light);
+      border-radius: 12px;
+      padding: 13px 15px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .session-icon {
+      width: 38px; height: 38px;
+      background: var(--blue);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .session-info { flex: 1; }
+    .session-info h4 { font-size: 13px; font-weight: 700; color: var(--blue-dark); margin-bottom: 2px; }
+    .session-info p { font-size: 11px; color: var(--gray-500); }
+    .session-link { font-size: 12px; color: var(--blue); font-weight: 700; white-space: nowrap; }
+
+    /* Locked sections */
+    .locked-section {
+      margin: 10px 18px 0;
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 13px 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .locked-icon-wrap { font-size: 22px; }
+    .locked-info { flex: 1; }
+    .locked-info h4 { font-size: 13px; font-weight: 600; color: var(--gray-500); margin-bottom: 2px; }
+    .locked-info p { font-size: 11px; color: var(--gray-400); }
+    .lock-icon { font-size: 14px; opacity: .35; }
+
+    /* ============================
+       STATE 2 · RÉCURRENT
+       ============================ */
+
+    /* Day bar */
+    .day-bar {
+      background: white;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .day-bar-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .day-greeting { font-size: 15px; font-weight: 800; color: var(--gray-900); }
+    .streak-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: #FEF3C7;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .streak-chip span { font-size: 13px; font-weight: 800; color: #B45309; }
+    .week-row { display: flex; gap: 6px; }
+    .day-dot {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700;
+      color: var(--gray-400);
+      background: var(--gray-100);
+      gap: 1px;
+    }
+    .day-dot.done { background: var(--green); color: white; }
+    .day-dot.today {
+      background: var(--blue); color: white;
+      box-shadow: 0 0 0 3px var(--blue-light);
+    }
+
+    /* Quick carnet CTA */
+    .carnet-banner {
+      margin: 16px 18px 0;
+      background: linear-gradient(135deg, #1440CC, #3D7EFF);
+      border-radius: 14px;
+      padding: 15px 16px;
+      display: flex; align-items: center; gap: 14px;
+      color: white;
+    }
+    .carnet-icon-wrap {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .carnet-info { flex: 1; }
+    .carnet-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+    .carnet-info p { font-size: 12px; opacity: .78; }
+    .carnet-btn {
+      background: white;
+      color: var(--blue);
+      border: none;
+      border-radius: 9px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Coach inline */
+    .coach-row {
+      margin: 12px 18px 0;
+      background: white;
+      border-radius: 12px;
+      padding: 13px 14px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-100);
+    }
+    .coach-avatar-md {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      border: 2px solid var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .coach-row-info { flex: 1; }
+    .coach-row-info h4 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+    .coach-row-info p { font-size: 12px; color: var(--gray-500); }
+    .msg-btn {
+      background: var(--blue-light);
+      color: var(--blue);
+      border: none; border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+
+    /* Section */
+    .sec { padding: 18px 18px 0; }
+    .sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .sec-title { font-size: 15px; font-weight: 800; color: var(--gray-900); }
+    .sec-link { font-size: 12px; color: var(--blue); font-weight: 600; text-decoration: none; }
+
+    /* Main action card */
+    .action-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-100);
+      margin-bottom: 10px;
+    }
+    .action-tag {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: .8px; font-weight: 800;
+      color: var(--pink); margin-bottom: 5px;
+    }
+    .action-card h3 { font-size: 16px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; letter-spacing: -.2px; }
+    .action-card p { font-size: 13px; color: var(--gray-500); line-height: 1.45; margin-bottom: 14px; }
+    .meta-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .meta-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--gray-100);
+      color: var(--gray-500);
+      font-size: 11px; font-weight: 600;
+      padding: 4px 8px; border-radius: 6px;
+    }
+
+    /* Tasks */
+    .tasks { display: flex; flex-direction: column; gap: 7px; }
+    .task {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 13px;
+      background: var(--gray-50);
+      border-radius: 10px;
+    }
+    .task.done { opacity: .58; }
+    .task-circle {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+    }
+    .task.done .task-circle { background: var(--green); border-color: var(--green); color: white; }
+    .task-label { flex: 1; font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .task.done .task-label { text-decoration: line-through; color: var(--gray-400); }
+    .task-sub { font-size: 11px; color: var(--gray-400); }
+
+    /* Progress */
+    .prog-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-100);
+    }
+    .prog-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+    .prog-row:not(:last-child) { border-bottom: 1px solid var(--gray-100); margin-bottom: 4px; }
+    .prog-ico {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .prog-ico.n { background: #FFF3E0; }
+    .prog-ico.f { background: #E8F5E9; }
+    .prog-meta { flex: 1; }
+    .prog-meta h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+    .prog-meta span { font-size: 11px; color: var(--gray-400); }
+    .prog-bar-wrap { width: 90px; }
+    .prog-bar { height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; margin-bottom: 3px; }
+    .prog-fill { height: 100%; border-radius: 3px; }
+    .prog-fill.n { background: linear-gradient(90deg, var(--blue), #4B8DFF); }
+    .prog-fill.f { background: linear-gradient(90deg, var(--green), #66CC88); }
+    .prog-pct { font-size: 11px; font-weight: 800; text-align: right; }
+    .prog-pct.n { color: var(--blue); }
+    .prog-pct.f { color: var(--green); }
+
+    /* Collapsed secondary content */
+    .sec-collapsed { padding: 0 18px; }
+    .collapse-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+      border-top: 1px solid var(--gray-100);
+      cursor: pointer;
+    }
+    .collapse-trigger h3 { font-size: 13px; font-weight: 700; color: var(--gray-500); }
+    .chevron { font-size: 14px; color: var(--gray-400); transition: transform .2s; }
+    .collapse-body { display: none; padding-bottom: 12px; }
+    .collapse-body.open { display: block; }
+    .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mini-card {
+      background: white;
+      border-radius: 10px; padding: 13px;
+      border: 1px solid var(--gray-100);
+    }
+    .mini-card .mc-icon { font-size: 20px; margin-bottom: 6px; }
+    .mini-card h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+    .mini-card p { font-size: 11px; color: var(--gray-400); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      border-top: 1px solid var(--gray-100);
+      padding: 10px 10px 14px;
+      display: flex; justify-content: space-around;
+      background: white;
+    }
+    .nav-item {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 3px;
+      cursor: pointer; min-width: 52px;
+    }
+    .nav-item .ni { font-size: 22px; }
+    .nav-item .nl { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+    .nav-item.on .nl { color: var(--blue); font-weight: 800; }
+
+    /* Spacer */
+    .spacer { height: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- Topbar toggle -->
+<div class="topbar">
+  <span class="topbar-label">État dashboard :</span>
+  <div class="toggle-group">
+    <button class="toggle-btn active" onclick="show('first', this)">🆕 Premier accès</button>
+    <button class="toggle-btn"        onclick="show('recur', this)">🔄 Utilisateur récurrent</button>
+  </div>
+</div>
+
+<!-- Phone -->
+<div class="phone">
+
+  <!-- App header -->
+  <div class="app-header">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      LineCoaching
+    </div>
+    <div class="header-right">
+      <span class="bell">🔔</span>
+      <div class="avatar-chip">
+        👤<div class="notif-dot" id="ndot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       ÉTAT 1 · PREMIER ACCÈS
+       ══════════════════════════════ -->
+  <div class="state active scroll-area" id="s-first">
+
+    <!-- Coach hero — front & center, pleine largeur -->
+    <div class="coach-hero">
+      <div class="hero-top">
+        <div class="coach-avatar-lg">👩‍⚕️</div>
+        <div class="hero-text">
+          <div class="coach-tag">Votre coach · Marie</div>
+          <div class="hero-greeting">Bonjour Aline,<br>bienvenue ! 👋</div>
+          <div class="hero-msg">Je vais vous accompagner tout au long de votre programme. Commençons par mieux vous connaître.</div>
+        </div>
+      </div>
+      <div class="program-pill">
+        <div class="prog-icon">🥗</div>
+        <div class="prog-info">
+          <h4>LineCoaching Nutrition</h4>
+          <p>Démarrez votre profil personnalisé</p>
+        </div>
+        <span class="prog-time">⏱ 3 min</span>
+      </div>
+    </div>
+
+    <div class="annot">✦ Fix P2 — Coach en pleine largeur dès l'arrivée, pas en sidebar</div>
+
+    <!-- QPP card : seul CTA primaire -->
+    <div class="section-pad">
+      <div class="eyebrow">Étape 1 · Avant de commencer</div>
+      <div class="card">
+        <div class="steps-track">
+          <div class="step-bar active"></div>
+          <div class="step-bar"></div>
+          <div class="step-bar"></div>
+        </div>
+        <div class="card-title">Votre profil personnalisé</div>
+        <div class="card-sub">8 questions pour que Marie adapte votre programme à vos habitudes, votre rythme et vos objectifs.</div>
+        <div class="time-badge">⏱ 3 minutes · 8 questions</div>
+        <button class="btn-primary" onclick="alert('→ Tunnel QPP\n\nUne question par écran. Après complétion : dashboard récurrent s\'ouvre avec profil et plan du jour activés.')">
+          Commencer mon profil →
+        </button>
+        <button class="btn-ghost">En savoir plus sur le programme</button>
+      </div>
+    </div>
+
+    <div class="annot">✦ Fix P0 — Un seul CTA primaire. Le QPP est l'unique action du premier accès.</div>
+
+    <!-- Session coach -->
+    <div class="session-card">
+      <div class="session-icon">📅</div>
+      <div class="session-info">
+        <h4>Premier entretien avec Marie</h4>
+        <p>6 séances disponibles · À planifier</p>
+      </div>
+      <span class="session-link">Planifier →</span>
+    </div>
+
+    <!-- Catalogue verrouillé -->
+    <div class="annot">✦ Fix P1 — Catalogue visible mais verrouillé (progressive disclosure)</div>
+    <div class="locked-section">
+      <div class="locked-icon-wrap">🏆</div>
+      <div class="locked-info">
+        <h4>Défis &amp; récompenses</h4>
+        <p>Disponible après votre profil</p>
+      </div>
+      <span class="lock-icon">🔒</span>
+    </div>
+    <div class="locked-section">
+      <div class="locked-icon-wrap">⚡</div>
+      <div class="locked-info">
+        <h4>Activités libres</h4>
+        <p>Disponible après votre profil</p>
+      </div>
+      <span class="lock-icon">🔒</span>
+    </div>
+    <div class="locked-section">
+      <div class="locked-icon-wrap">🎙</div>
+      <div class="locked-info">
+        <h4>Webinars &amp; Communauté</h4>
+        <p>Disponible après votre profil</p>
+      </div>
+      <span class="lock-icon">🔒</span>
+    </div>
+
+    <div class="spacer"></div>
+  </div><!-- /state first -->
+
+
+  <!-- ══════════════════════════════
+       ÉTAT 2 · UTILISATEUR RÉCURRENT
+       ══════════════════════════════ -->
+  <div class="state scroll-area" id="s-recur">
+
+    <!-- Streak + semaine -->
+    <div class="day-bar">
+      <div class="day-bar-top">
+        <div class="day-greeting">Bonjour Aline ☀️</div>
+        <div class="streak-chip">🔥 <span>12 jours</span></div>
+      </div>
+      <div class="week-row">
+        <div class="day-dot done">L<br>✓</div>
+        <div class="day-dot done">M<br>✓</div>
+        <div class="day-dot done">M<br>✓</div>
+        <div class="day-dot done">J<br>✓</div>
+        <div class="day-dot today">V<br>·</div>
+        <div class="day-dot">S</div>
+        <div class="day-dot">D</div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Streak hebdomadaire en haut — feedback immédiat sur la continuité (pattern Duolingo / Kwit)</div>
+
+    <!-- Carnet rapide — action #1 du jour -->
+    <div class="carnet-banner">
+      <div class="carnet-icon-wrap">🌙</div>
+      <div class="carnet-info">
+        <h4>Carnet du sommeil</h4>
+        <p>Remplissez votre nuit · Ce matin</p>
+      </div>
+      <button class="carnet-btn">Remplir →</button>
+    </div>
+
+    <div class="annot">✦ Fix P0 récurrent — Carnet = accès direct 1 tap, jamais via navigation</div>
+
+    <!-- Coach inline -->
+    <div class="coach-row">
+      <div class="coach-avatar-md">👩‍⚕️</div>
+      <div class="coach-row-info">
+        <h4>Marie · Votre coach</h4>
+        <p>Prochain appel · Lundi 25 à 18h</p>
+      </div>
+      <button class="msg-btn">Message</button>
+    </div>
+
+    <!-- Plan du jour -->
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">Plan du jour</div>
+        <a href="#" class="sec-link">Tout voir</a>
+      </div>
+
+      <!-- Action principale -->
+      <div class="action-card">
+        <div class="action-tag">Étape A5 · Alimentation</div>
+        <h3>Je découvre les causes de mes excès</h3>
+        <p>Comprendre pourquoi vous mangez sous l'effet des émotions — activité clé du programme.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 2 min</span>
+          <span class="meta-chip">📖 Activité</span>
+        </div>
+        <button class="btn-primary">Continuer mon programme →</button>
+      </div>
+
+      <!-- Tâches du jour -->
+      <div class="tasks">
+        <div class="task done">
+          <div class="task-circle">✓</div>
+          <div class="task-label">Carnet alimentaire du matin</div>
+          <div class="task-sub">8h12</div>
+        </div>
+        <div class="task">
+          <div class="task-circle"></div>
+          <div class="task-label">Carnet alimentaire du soir</div>
+          <div class="task-sub">À faire</div>
+        </div>
+        <div class="task">
+          <div class="task-circle"></div>
+          <div class="task-label">35 min marche rapide</div>
+          <div class="task-sub">Parcours Forme</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Plan du jour : 1 action primaire + max 3 tâches. Hiérarchie stricte (pattern Noom / Kwit)</div>
+
+    <!-- Progression -->
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">Ma progression</div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-row">
+          <div class="prog-ico n">🥗</div>
+          <div class="prog-meta">
+            <h5>Alimentation</h5>
+            <span>Étape A5 / 10</span>
+          </div>
+          <div class="prog-bar-wrap">
+            <div class="prog-bar"><div class="prog-fill n" style="width:71%"></div></div>
+            <div class="prog-pct n">71 %</div>
+          </div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-ico f">🏃</div>
+          <div class="prog-meta">
+            <h5>Forme</h5>
+            <span>Niveau 2 / 5</span>
+          </div>
+          <div class="prog-bar-wrap">
+            <div class="prog-bar"><div class="prog-fill f" style="width:40%"></div></div>
+            <div class="prog-pct f">40 %</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Progression condensée en 2 lignes — pattern Oura (score lisible, détail au tap)</div>
+
+    <!-- Catalogue secondaire replié -->
+    <div class="sec-collapsed">
+      <div class="collapse-trigger" onclick="toggleCollapse(this)">
+        <h3>Défis · Webinars · Mag' · Communauté</h3>
+        <span class="chevron">›</span>
+      </div>
+      <div class="collapse-body">
+        <div class="mini-grid">
+          <div class="mini-card">
+            <div class="mc-icon">🏆</div>
+            <h5>Défis</h5>
+            <p>3 défis actifs</p>
+          </div>
+          <div class="mini-card">
+            <div class="mc-icon">🎙</div>
+            <h5>Webinars</h5>
+            <p>Prochain · 12 juil</p>
+          </div>
+          <div class="mini-card">
+            <div class="mc-icon">📰</div>
+            <h5>Le Mag'</h5>
+            <p>3 nouveaux articles</p>
+          </div>
+          <div class="mini-card">
+            <div class="mc-icon">👥</div>
+            <h5>Communauté</h5>
+            <p>12 membres actifs</p>
+          </div>
+        </div>
+      </div>
+      <div class="annot">✦ Fix P1 — Catalogue replié par défaut. Accessible, mais non imposé au scroll.</div>
+    </div>
+
+    <div class="spacer"></div>
+  </div><!-- /state recur -->
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item on">
+      <span class="ni">🏠</span>
+      <span class="nl">Accueil</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">📋</span>
+      <span class="nl">Programme</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">📓</span>
+      <span class="nl">Carnets</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">📊</span>
+      <span class="nl">Stats</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">👥</span>
+      <span class="nl">Communauté</span>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('s-' + id).classList.add('active');
+    btn.classList.add('active');
+    document.getElementById('ndot').style.display = id === 'first' ? 'block' : 'none';
+  }
+
+  function toggleCollapse(trigger) {
+    const body = trigger.nextElementSibling;
+    const chevron = trigger.querySelector('.chevron');
+    body.classList.toggle('open');
+    chevron.style.transform = body.classList.contains('open') ? 'rotate(90deg)' : '';
+  }
+</script>
+
+</body>
+</html>

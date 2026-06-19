@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LineCoaching · Statistiques Optimisées</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue:      #1E5BFF;
+      --blue-dk:   #1440CC;
+      --blue-lt:   #EBF0FF;
+      --blue-xlt:  #F5F8FF;
+      --green:     #22C55E;
+      --green-dk:  #16A34A;
+      --green-lt:  #F0FDF4;
+      --orange:    #F59E0B;
+      --orange-lt: #FFFBEB;
+      --pink:      #E91E8C;
+      --pink-lt:   #FFF0F8;
+      --red:       #EF4444;
+      --red-lt:    #FEF2F2;
+      --gray-50:   #F8F9FA;
+      --gray-100:  #F1F3F5;
+      --gray-200:  #E2E8F0;
+      --gray-400:  #94A3B8;
+      --gray-500:  #64748B;
+      --gray-700:  #334155;
+      --gray-900:  #0F172A;
+      --sidebar:   220px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F5F7FF;
+      color: var(--gray-900);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── ANNOT ── */
+    .annot {
+      padding: 6px 12px;
+      background: #FFFDE7;
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      font-size: 11px; color: #92400E; line-height: 1.4;
+    }
+
+    /* ══════ SIDEBAR ══════ */
+    .sidebar {
+      width: var(--sidebar);
+      min-height: 100vh;
+      background: white;
+      border-right: 1px solid var(--gray-100);
+      display: flex; flex-direction: column;
+      position: fixed; left: 0; top: 0;
+      padding: 20px 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--gray-100);
+      margin-bottom: 12px;
+    }
+    .logo-icon { width: 28px; height: 28px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 900; }
+    .logo-text { font-size: 14px; font-weight: 800; color: var(--blue); }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px;
+      font-size: 13px; font-weight: 500; color: var(--gray-500);
+      cursor: pointer; border-radius: 0;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .nav-item:hover { background: var(--gray-50); color: var(--gray-700); }
+    .nav-item.active { background: var(--blue-lt); color: var(--blue); font-weight: 700; }
+    .nav-item .ni { font-size: 16px; }
+    .nav-divider { height: 1px; background: var(--gray-100); margin: 8px 20px; }
+    .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--gray-400); font-weight: 700; padding: 8px 20px 4px; }
+
+    /* ══════ MAIN ══════ */
+    .main {
+      margin-left: var(--sidebar);
+      flex: 1;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--gray-100);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar h1 { font-size: 22px; font-weight: 900; color: var(--gray-900); letter-spacing: -.4px; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .coach-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--blue-lt); border-radius: 20px;
+      padding: 6px 14px; cursor: pointer;
+    }
+    .coach-chip .cc-avatar { font-size: 18px; }
+    .coach-chip .cc-label { font-size: 12px; font-weight: 700; color: var(--blue); }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid var(--gray-200); border-radius: 20px;
+      padding: 6px 14px; cursor: pointer;
+    }
+    .user-chip .uc-label { font-size: 12px; font-weight: 600; color: var(--gray-700); }
+
+    /* ── CONTENT ── */
+    .content { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── SCORE BAND ── */
+    .score-band {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    }
+    .score-card {
+      background: white; border-radius: 14px;
+      padding: 18px 20px;
+      border: 1.5px solid var(--gray-100);
+      display: flex; flex-direction: column; gap: 6px;
+      position: relative; overflow: hidden;
+    }
+    .score-card::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 3px;
+      border-radius: 0 0 12px 12px;
+    }
+    .score-card.sens::after { background: var(--green); }
+    .score-card.emot::after { background: var(--orange); }
+    .score-card.poids::after { background: var(--blue); }
+    .score-card.sport::after { background: var(--pink); }
+    .sc-icon { font-size: 22px; margin-bottom: 2px; }
+    .sc-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); font-weight: 700; }
+    .sc-value { font-size: 32px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .sc-value.sens { color: var(--green-dk); }
+    .sc-value.emot { color: var(--orange); }
+    .sc-value.poids { color: var(--blue); }
+    .sc-value.sport { color: var(--pink); }
+    .sc-delta { font-size: 12px; font-weight: 700; }
+    .sc-delta.up { color: var(--green); }
+    .sc-delta.dn { color: var(--red); }
+    .sc-delta.eq { color: var(--gray-400); }
+    .sc-sub { font-size: 11px; color: var(--gray-400); line-height: 1.3; }
+
+    /* ── HEADLINE CARD ── */
+    .headline-card {
+      background: linear-gradient(135deg, #0F3B2E 0%, #166534 60%, #22C55E 100%);
+      border-radius: 16px; padding: 22px 24px;
+      color: white; display: flex; align-items: center; gap: 20px;
+    }
+    .hc-icon {
+      width: 56px; height: 56px; flex-shrink: 0;
+      background: rgba(255,255,255,.15); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .hc-text { flex: 1; }
+    .hc-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; opacity: .65; margin-bottom: 4px; }
+    .hc-headline { font-size: 20px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 4px; line-height: 1.25; }
+    .hc-sub { font-size: 13px; opacity: .8; line-height: 1.45; }
+    .hc-cta {
+      background: white; color: var(--green-dk);
+      border: none; border-radius: 10px;
+      padding: 11px 18px; font-size: 13px; font-weight: 800;
+      cursor: pointer; white-space: nowrap;
+    }
+
+    /* ── TABS ── */
+    .tabs-row {
+      display: flex; gap: 4px;
+      background: white; border-radius: 12px;
+      padding: 4px; border: 1.5px solid var(--gray-100);
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      border: none; border-radius: 9px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; background: transparent; color: var(--gray-500);
+      transition: all .15s;
+    }
+    .tab-btn.active { background: var(--blue); color: white; font-weight: 700; }
+    .tab-btn .tb-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+    /* ── CHART SECTION ── */
+    .chart-section { background: white; border-radius: 16px; border: 1.5px solid var(--gray-100); overflow: hidden; }
+    .cs-header { padding: 20px 24px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .cs-title-block { }
+    .cs-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); font-weight: 700; margin-bottom: 4px; }
+    .cs-title { font-size: 17px; font-weight: 900; color: var(--gray-900); margin-bottom: 3px; letter-spacing: -.2px; }
+    .cs-insight {
+      font-size: 13px; color: var(--gray-500); line-height: 1.4;
+      max-width: 520px;
+    }
+    .cs-insight strong { color: var(--gray-700); }
+    .cs-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .period-btns { display: flex; border: 1.5px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+    .pb { padding: 5px 12px; border: none; background: white; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--gray-500); }
+    .pb.active { background: var(--gray-900); color: white; }
+    .chart-area { padding: 16px 24px 20px; height: 240px; }
+
+    /* ── 2-COL LAYOUT ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* ── STAT MINI CARD ── */
+    .mini-stat {
+      background: white; border-radius: 12px;
+      border: 1.5px solid var(--gray-100);
+      padding: 16px 18px;
+    }
+    .ms-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); margin-bottom: 6px; font-weight: 700; }
+    .ms-val { font-size: 26px; font-weight: 900; letter-spacing: -.5px; color: var(--gray-900); margin-bottom: 2px; }
+    .ms-sub { font-size: 12px; color: var(--gray-400); }
+    .ms-delta { font-size: 12px; font-weight: 700; margin-top: 3px; }
+
+    /* ── IMPACT TABLE (WHOOP pattern) ── */
+    .impact-section {
+      background: white; border-radius: 16px; border: 1.5px solid var(--gray-100);
+      padding: 22px 24px;
+    }
+    .is-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .is-header h3 { font-size: 16px; font-weight: 900; color: var(--gray-900); }
+    .is-header span { font-size: 12px; color: var(--gray-400); }
+    .impact-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 0; border-bottom: 1px solid var(--gray-50);
+    }
+    .impact-row:last-child { border-bottom: none; }
+    .ir-label { font-size: 13px; font-weight: 700; color: var(--gray-900); width: 220px; flex-shrink: 0; }
+    .ir-bar-wrap { flex: 1; }
+    .ir-bar { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: visible; position: relative; }
+    .ir-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+    .ir-fill.pos { background: linear-gradient(90deg, var(--green), #4ADE80); }
+    .ir-fill.neg { background: linear-gradient(90deg, var(--red), #F87171); }
+    .ir-val { font-size: 13px; font-weight: 900; width: 52px; text-align: right; flex-shrink: 0; }
+    .ir-val.pos { color: var(--green-dk); }
+    .ir-val.neg { color: var(--red); }
+    .ir-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; width: 60px; text-align: center; }
+    .ir-badge.aide { background: var(--green-lt); color: var(--green-dk); }
+    .ir-badge.naide { background: var(--red-lt); color: var(--red); }
+    .ir-badge.new { background: var(--blue-lt); color: var(--blue); }
+
+    /* ── POIDS REFRAME ── */
+    .poids-reframe {
+      background: var(--blue-xlt); border-radius: 12px;
+      padding: 14px 18px; margin-bottom: 14px;
+      border: 1.5px solid var(--blue-lt);
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .pr-icon { font-size: 22px; flex-shrink: 0; }
+    .pr-text { }
+    .pr-text h4 { font-size: 13px; font-weight: 800; color: var(--blue-dk); margin-bottom: 3px; }
+    .pr-text p { font-size: 12px; color: var(--blue-dk); opacity: .8; line-height: 1.45; }
+
+    /* ── SECTION DIVIDER ── */
+    .sec-divider {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sd-label { font-size: 13px; font-weight: 800; color: var(--gray-700); white-space: nowrap; }
+    .sd-line { flex: 1; height: 1px; background: var(--gray-100); }
+
+    /* hidden tabs */
+    .tab-content { display: none; }
+    .tab-content.active { display: contents; }
+
+    .spacer { height: 32px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════ SIDEBAR ══════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">LC</div>
+    <div class="logo-text">LineCoaching</div>
+  </div>
+  <a class="nav-item" href="#"><span class="ni">🏠</span> Accueil</a>
+  <a class="nav-item" href="#"><span class="ni">📋</span> Programme</a>
+  <a class="nav-item" href="#"><span class="ni">📓</span> Carnets</a>
+  <a class="nav-item active" href="#"><span class="ni">📊</span> Statistiques</a>
+  <div class="nav-divider"></div>
+  <div class="nav-section">Accompagnement</div>
+  <a class="nav-item" href="#"><span class="ni">🏆</span> Défis</a>
+  <a class="nav-item" href="#"><span class="ni">👥</span> Communauté</a>
+  <a class="nav-item" href="#"><span class="ni">🎙</span> Webinars</a>
+  <div class="nav-divider"></div>
+  <div class="nav-section">Ressources</div>
+  <a class="nav-item" href="#"><span class="ni">📰</span> Le Mag'</a>
+  <a class="nav-item" href="#"><span class="ni">❓</span> FAQ</a>
+</nav>
+
+<!-- ══════ MAIN ══════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <h1>Mes statistiques</h1>
+    <div class="topbar-right">
+      <div class="coach-chip">
+        <span class="cc-avatar">👩‍⚕️</span>
+        <span class="cc-label">Marie · Mon coach</span>
+      </div>
+      <div class="user-chip">
+        <span class="uc-label">👤 Andrew</span>
+        <span style="color:var(--gray-400);font-size:12px">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── ANNOT ── -->
+    <div class="annot">
+      ✦ Fix P0 — Les Sensations alimentaires deviennent la métrique principale. Le poids est relégué en 3e position, cohérent avec "maigrir sans régime" et alimentation intuitive.
+    </div>
+
+    <!-- ── SCORES SYNTHÉTIQUES ── -->
+    <div class="score-band">
+
+      <div class="score-card sens">
+        <div class="sc-icon">🍽</div>
+        <div class="sc-label">Sensations alimentaires</div>
+        <div class="sc-value sens">78%</div>
+        <div class="sc-delta up">↑ +12 pts vs sem. passée</div>
+        <div class="sc-sub">repas où faim & satiété respectées</div>
+      </div>
+
+      <div class="score-card emot">
+        <div class="sc-icon">💛</div>
+        <div class="sc-label">Manger émotionnel</div>
+        <div class="sc-value emot">3</div>
+        <div class="sc-delta up">↓ −2 vs sem. passée</div>
+        <div class="sc-sub">envies émotionnelles cette semaine</div>
+      </div>
+
+      <div class="score-card sport">
+        <div class="sc-icon">🏃</div>
+        <div class="sc-label">Activité physique</div>
+        <div class="sc-value sport">3</div>
+        <div class="sc-delta eq">→ Stable</div>
+        <div class="sc-sub">séances cette semaine</div>
+      </div>
+
+      <div class="score-card poids">
+        <div class="sc-icon">📉</div>
+        <div class="sc-label">Évolution naturelle</div>
+        <div class="sc-value poids">−4.2kg</div>
+        <div class="sc-delta up">depuis le départ (95.2 kg)</div>
+        <div class="sc-sub">en 6 semaines sans restriction</div>
+      </div>
+
+    </div>
+
+    <div class="annot">
+      ✦ Fix P0 (pattern Oura/WHOOP) — 4 scores synthétiques lisibles d'un coup d'œil. Le poids est reframé "Évolution naturelle" et affiché comme résultat, pas comme objectif principal.
+    </div>
+
+    <!-- ── HEADLINE NARRATIVE ── -->
+    <div class="headline-card">
+      <div class="hc-icon">🎉</div>
+      <div class="hc-text">
+        <div class="hc-tag">Insight de la semaine · Marie</div>
+        <div class="hc-headline">Vous avez respecté votre faim dans 78% de vos repas — votre meilleur score depuis le début.</div>
+        <div class="hc-sub">La semaine dernière c'était 66%. Continuez à vous connecter à vos sensations avant de manger, ça fonctionne.</div>
+      </div>
+      <button class="hc-cta">Voir le détail →</button>
+    </div>
+
+    <div class="annot">
+      ✦ Fix P0 (pattern Sleepio) — Headline narrative générée depuis les données carnet. La donnée brute devient un message de coaching. Récompense le remplissage des carnets.
+    </div>
+
+    <!-- ── TABS ── -->
+    <div class="tabs-row">
+      <button class="tab-btn active" onclick="switchTab('sens', this)"><span class="tb-dot" style="background:var(--green)"></span>Sensations alimentaires</button>
+      <button class="tab-btn" onclick="switchTab('emot', this)"><span class="tb-dot" style="background:var(--orange)"></span>Manger émotionnel</button>
+      <button class="tab-btn" onclick="switchTab('sport', this)"><span class="tb-dot" style="background:var(--pink)"></span>Sport</button>
+      <button class="tab-btn" onclick="switchTab('poids', this)"><span class="tb-dot" style="background:var(--blue)"></span>Évolution poids</button>
+    </div>
+
+    <!-- ══════ TAB: SENSATIONS ══════ -->
+    <div id="tab-sens" class="tab-content active">
+
+      <div class="chart-section">
+        <div class="cs-header">
+          <div class="cs-title-block">
+            <div class="cs-tag">Semaine en cours · S6</div>
+            <div class="cs-title">Respect de la faim &amp; de la satiété</div>
+            <div class="cs-insight">
+              Chaque repas où vous avez mangé en écoutant votre corps — sans règle externe. <strong>Cette semaine : 78% de vos repas</strong>, en hausse de 12 pts.
+            </div>
+          </div>
+          <div class="cs-controls">
+            <div class="period-btns">
+              <button class="pb active">Sem.</button>
+              <button class="pb">Mois</button>
+              <button class="pb">Total</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas id="chartSens"></canvas>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="mini-stat">
+          <div class="ms-label">Faim respectée</div>
+          <div class="ms-val" style="color:var(--green-dk)">82%</div>
+          <div class="ms-sub">repas · cette semaine</div>
+          <div class="ms-delta up">↑ +14 pts</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Satiété respectée</div>
+          <div class="ms-val" style="color:var(--green-dk)">74%</div>
+          <div class="ms-sub">repas · cette semaine</div>
+          <div class="ms-delta up">↑ +9 pts</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Meilleur jour</div>
+          <div class="ms-val" style="color:var(--green-dk)">Mer.</div>
+          <div class="ms-sub">100% faim + satiété</div>
+          <div class="ms-delta" style="color:var(--gray-400)">Score parfait ✨</div>
+        </div>
+      </div>
+
+      <!-- Impact comportements -->
+      <div class="sec-divider">
+        <div class="sd-label">Impact de vos comportements sur vos sensations</div>
+        <div class="sd-line"></div>
+        <span style="font-size:11px;color:var(--gray-400);white-space:nowrap">90 derniers jours</span>
+      </div>
+
+      <div class="annot">
+        ✦ Pattern WHOOP Journal — Corrélation comportements déclarés → résultats. Calculé depuis les carnets sans capteur. Disponible dès 4 semaines de données.
+      </div>
+
+      <div class="impact-section">
+        <div class="is-header">
+          <h3>Ce qui améliore vos sensations</h3>
+          <span>Appuyez sur un comportement pour le détail</span>
+        </div>
+
+        <div class="impact-row">
+          <div class="ir-label">🥗 Repas sans écran</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill pos" style="width:85%"></div></div>
+          </div>
+          <div class="ir-val pos">+28%</div>
+          <div class="ir-badge aide">Aide ↑</div>
+        </div>
+        <div class="impact-row">
+          <div class="ir-label">⏰ Repas à heure régulière</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill pos" style="width:72%"></div></div>
+          </div>
+          <div class="ir-val pos">+22%</div>
+          <div class="ir-badge aide">Aide ↑</div>
+        </div>
+        <div class="impact-row">
+          <div class="ir-label">🏃 Sport dans la journée</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill pos" style="width:55%"></div></div>
+          </div>
+          <div class="ir-val pos">+16%</div>
+          <div class="ir-badge new">Nouveau</div>
+        </div>
+        <div class="impact-row">
+          <div class="ir-label">😴 Moins de 7h de sommeil</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill neg" style="width:50%"></div></div>
+          </div>
+          <div class="ir-val neg">−18%</div>
+          <div class="ir-badge naide">Nuit ↓</div>
+        </div>
+        <div class="impact-row">
+          <div class="ir-label">😰 Journée stressante (≥7/10)</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill neg" style="width:38%"></div></div>
+          </div>
+          <div class="ir-val neg">−14%</div>
+          <div class="ir-badge naide">Nuit ↓</div>
+        </div>
+        <div class="impact-row">
+          <div class="ir-label">🍷 Alcool dans la soirée</div>
+          <div class="ir-bar-wrap">
+            <div class="ir-bar"><div class="ir-fill neg" style="width:28%"></div></div>
+          </div>
+          <div class="ir-val neg">−10%</div>
+          <div class="ir-badge naide">Nuit ↓</div>
+        </div>
+      </div>
+
+    </div><!-- /tab-sens -->
+
+    <!-- ══════ TAB: ÉMOTIONS ══════ -->
+    <div id="tab-emot" class="tab-content">
+
+      <div class="chart-section">
+        <div class="cs-header">
+          <div class="cs-title-block">
+            <div class="cs-tag">Manger émotionnel · S6</div>
+            <div class="cs-title">Envies de manger émotionnelles</div>
+            <div class="cs-insight">
+              Cette semaine : <strong>3 envies de manger émotionnelles</strong>, contre 5 la semaine dernière. La taille des prises associées diminue aussi. Vous progressez sur un point clé du programme.
+            </div>
+          </div>
+          <div class="cs-controls">
+            <div class="period-btns">
+              <button class="pb active">Sem.</button>
+              <button class="pb">Mois</button>
+              <button class="pb">Total</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas id="chartEmot"></canvas>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="mini-stat">
+          <div class="ms-label">Envies émotionnelles</div>
+          <div class="ms-val" style="color:var(--orange)">3</div>
+          <div class="ms-sub">cette semaine</div>
+          <div class="ms-delta up">↓ −2 vs sem. dernière</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Taille moy. des prises</div>
+          <div class="ms-val" style="color:var(--orange)">4.2<span style="font-size:14px;font-weight:500">/10</span></div>
+          <div class="ms-sub">auto-évaluation</div>
+          <div class="ms-delta up">↓ −1.8 pts</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Émotion déclencheur</div>
+          <div class="ms-val" style="font-size:22px">😰</div>
+          <div class="ms-sub">Stress (2/3 fois)</div>
+          <div class="ms-delta" style="color:var(--blue);font-weight:700">→ Étape A5 ciblée</div>
+        </div>
+      </div>
+
+      <div class="annot">
+        ✦ Insight programme : lier l'émotion déclencheur à l'étape du programme qui travaille dessus ("Étape A5"). La donnée devient actionnable, pas juste descriptive.
+      </div>
+
+    </div><!-- /tab-emot -->
+
+    <!-- ══════ TAB: SPORT ══════ -->
+    <div id="tab-sport" class="tab-content">
+
+      <div class="chart-section">
+        <div class="cs-header">
+          <div class="cs-title-block">
+            <div class="cs-tag">Activité physique · S6</div>
+            <div class="cs-title">Mes séances sportives</div>
+            <div class="cs-insight">
+              <strong>3 séances cette semaine</strong> pour 130 min d'activité totale. Le renforcement musculaire est votre activité dominante. L'objectif du programme est 150 min/semaine.
+            </div>
+          </div>
+          <div class="cs-controls">
+            <div class="period-btns">
+              <button class="pb active">Sem.</button>
+              <button class="pb">Mois</button>
+            </div>
+            <button style="background:var(--blue);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Enregistrer</button>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas id="chartSport"></canvas>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="mini-stat">
+          <div class="ms-label">Durée totale</div>
+          <div class="ms-val" style="color:var(--pink)">130<span style="font-size:14px;font-weight:500"> min</span></div>
+          <div class="ms-sub">cette semaine</div>
+          <div class="ms-delta up">↑ +40 min vs S5</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Objectif semaine</div>
+          <div class="ms-val" style="color:var(--pink)">87<span style="font-size:14px;font-weight:500">%</span></div>
+          <div class="ms-sub">130 / 150 min</div>
+          <div class="ms-delta" style="color:var(--orange)">20 min restantes</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Activité favorite</div>
+          <div class="ms-val" style="font-size:20px">🏋️</div>
+          <div class="ms-sub">Renforcement musculaire</div>
+          <div class="ms-delta" style="color:var(--gray-400)">2 séances / sem.</div>
+        </div>
+      </div>
+
+    </div><!-- /tab-sport -->
+
+    <!-- ══════ TAB: POIDS ══════ -->
+    <div id="tab-poids" class="tab-content">
+
+      <!-- Reframe poids -->
+      <div class="poids-reframe">
+        <div class="pr-icon">💡</div>
+        <div class="pr-text">
+          <h4>Votre poids n'est pas votre objectif principal</h4>
+          <p>Chez LineCoaching, vous maigrissez durablement en retrouvant un rapport serein à la nourriture — sans restriction ni régime. L'évolution du poids est un <em>résultat naturel</em> de ce travail, pas un objectif à atteindre chaque jour.</p>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="cs-header">
+          <div class="cs-title-block">
+            <div class="cs-tag">Évolution naturelle · S1 → S6</div>
+            <div class="cs-title">Votre poids au fil du temps</div>
+            <div class="cs-insight">
+              Depuis le début du programme, votre poids a évolué de <strong>95.2 kg vers 91.0 kg</strong> — sans restriction alimentaire. Une perte régulière et durable.
+            </div>
+          </div>
+          <div class="cs-controls">
+            <div class="period-btns">
+              <button class="pb active">Sem.</button>
+              <button class="pb">Mois</button>
+              <button class="pb">Total</button>
+            </div>
+            <button style="background:var(--blue);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Entrer mon poids</button>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas id="chartPoids"></canvas>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="mini-stat">
+          <div class="ms-label">Poids de départ</div>
+          <div class="ms-val" style="color:var(--gray-500)">95.2<span style="font-size:14px"> kg</span></div>
+          <div class="ms-sub">05 avril 2024</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Aujourd'hui</div>
+          <div class="ms-val" style="color:var(--blue)">91.0<span style="font-size:14px"> kg</span></div>
+          <div class="ms-sub">12 juin 2024</div>
+          <div class="ms-delta up">−4.2 kg en 6 semaines</div>
+        </div>
+        <div class="mini-stat">
+          <div class="ms-label">Rythme moyen</div>
+          <div class="ms-val" style="color:var(--blue)">−0.7<span style="font-size:14px"> kg/sem.</span></div>
+          <div class="ms-sub">Sans restriction 👌</div>
+          <div class="ms-delta" style="color:var(--green-dk)">Rythme sain et durable</div>
+        </div>
+      </div>
+
+      <div class="annot">
+        ✦ Fix P1 — Poids reframé "Évolution naturelle", présenté en dernier, avec un bandeau éditorial rappelant la philosophie "sans régime". Supprimer l'accent sur "Je dois entrer mon poids" comme CTA principal.
+      </div>
+
+    </div><!-- /tab-poids -->
+
+    <div class="spacer"></div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  /* ── TAB SWITCH ── */
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  /* ── CHART DEFAULTS ── */
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = '#94A3B8';
+
+  const commonOptions = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#F1F3F5' }, border: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  };
+
+  /* ── CHART: SENSATIONS ── */
+  new Chart(document.getElementById('chartSens'), {
+    data: {
+      labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+      datasets: [
+        {
+          type: 'bar', label: 'Satiété respectée (%)',
+          data: [75, 50, 100, 100, 50, 75, 100],
+          backgroundColor: 'rgba(34,197,94,.25)',
+          borderColor: 'rgba(34,197,94,.7)', borderWidth: 1.5, borderRadius: 6,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line', label: 'Faim respectée (%)',
+          data: [100, 75, 100, 50, 100, 100, 75],
+          borderColor: '#E91E8C', borderWidth: 2.5,
+          pointBackgroundColor: '#E91E8C', pointRadius: 4,
+          tension: 0.4, fill: false, yAxisID: 'y'
+        }
+      ]
+    },
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 120, ticks: { callback: v => v + '%' } } } }
+  });
+
+  /* ── CHART: ÉMOTIONS ── */
+  new Chart(document.getElementById('chartEmot'), {
+    data: {
+      labels: ['Dim 18/2','Mar 20/2','Lun 26/2','Mer 28/2','Sam 1/3','Lun 3/3','Mer 5/3','Ven 7/3','Jeu 13/3','Sam 15/3','Lun 17/3'],
+      datasets: [
+        {
+          type: 'line', label: "Nb d'envies émotionnelles",
+          data: [1.0, 1.9, 1.1, 1.1, 1.1, 1.1, 1.0, 0, 1.1, 1.1, 0],
+          borderColor: '#F59E0B', borderWidth: 2.5,
+          pointBackgroundColor: '#F59E0B', pointRadius: 4,
+          tension: 0.4, fill: false, yAxisID: 'y'
+        },
+        {
+          type: 'bar', label: 'Taille de la prise (sur 10)',
+          data: [0, 0, 0, 7, 0, 8, 6, 0, 0, 0, 0],
+          backgroundColor: 'rgba(6,182,212,.3)',
+          borderColor: 'rgba(6,182,212,.7)', borderWidth: 1.5, borderRadius: 4,
+          yAxisID: 'y2'
+        }
+      ]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y:  { ...commonOptions.scales.y, position: 'left',  min: 0, max: 3, title: { display: true, text: 'Nb envies', font: { size: 10 } } },
+        y2: { grid: { display: false }, position: 'right', min: 0, max: 12, title: { display: true, text: 'Taille /10', font: { size: 10 } } }
+      }
+    }
+  });
+
+  /* ── CHART: SPORT ── */
+  new Chart(document.getElementById('chartSport'), {
+    type: 'bar',
+    data: {
+      labels: ['Ven 15/3','Sam 16/3','Lun 18/3','Mer 20/3','Lun 1/4'],
+      datasets: [
+        { label: 'Gym douce', data: [0,0,0,0,0], backgroundColor: 'rgba(74,222,128,.6)', borderRadius: 6 },
+        { label: 'Renforcement musculaire', data: [60,60,0,10,30], backgroundColor: 'rgba(99,102,241,.5)', borderRadius: 6 },
+        { label: 'Cardio', data: [0,0,15,0,0], backgroundColor: 'rgba(233,30,140,.4)', borderRadius: 6 }
+      ]
+    },
+    options: {
+      ...commonOptions,
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, grid: { color: '#F1F3F5' }, border: { display: false }, ticks: { callback: v => v + ' min' } }
+      }
+    }
+  });
+
+  /* ── CHART: POIDS ── */
+  new Chart(document.getElementById('chartPoids'), {
+    type: 'line',
+    data: {
+      labels: ['5 avr','12 avr','19 avr','26 avr','3 mai','10 mai','17 mai','24 mai','31 mai','7 juin','12 juin'],
+      datasets: [
+        {
+          label: 'Poids (kg)',
+          data: [95.2, 94.8, 94.1, 93.6, 93.0, 92.5, 92.1, 91.8, 91.4, 91.1, 91.0],
+          borderColor: '#1E5BFF', borderWidth: 2.5,
+          pointBackgroundColor: '#1E5BFF', pointRadius: 3,
+          tension: 0.4,
+          fill: true,
+          backgroundColor: (ctx) => {
+            const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(30,91,255,.15)');
+            gradient.addColorStop(1, 'rgba(30,91,255,.02)');
+            return gradient;
+          }
+        }
+      ]
+    },
+    options: {
+      ...commonOptions,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#F1F3F5' }, border: { display: false }, min: 88, max: 97, ticks: { callback: v => v + ' kg' } }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LineCoaching · Patterns Benchmark</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:       #1E5BFF;
+      --blue-dk:    #1440CC;
+      --blue-lt:    #EBF0FF;
+      --pink:       #E91E8C;
+      --green:      #2ECC71;
+      --green-dk:   #27AE60;
+      --orange:     #F59E0B;
+      --purple:     #7C3AED;
+      --purple-lt:  #EDE9FE;
+      --teal:       #06B6D4;
+      --teal-lt:    #E0F7FA;
+      --gray-50:    #F8F9FA;
+      --gray-100:   #F1F3F5;
+      --gray-200:   #E2E8F0;
+      --gray-400:   #94A3B8;
+      --gray-500:   #64748B;
+      --gray-700:   #334155;
+      --gray-900:   #0F172A;
+      --r:          14px;
+      --r-sm:       8px;
+      --sh:         0 2px 12px rgba(0,0,0,0.07);
+      --sh-md:      0 4px 20px rgba(0,0,0,0.11);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #E0E7F5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      width: 100%;
+      background: #0F172A;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .topbar-label {
+      color: rgba(255,255,255,.45);
+      font-size: 11px;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .tab-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+    .tab-btn {
+      padding: 6px 12px;
+      border: 1.5px solid rgba(255,255,255,.15);
+      border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: rgba(255,255,255,.5);
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: white;
+      color: var(--gray-900);
+      border-color: white;
+      font-weight: 800;
+    }
+
+    /* ── PHONE ── */
+    .phone {
+      width: 390px;
+      margin: 20px 0 40px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      min-height: 680px;
+    }
+
+    /* ── APP HEADER ── */
+    .app-header {
+      background: white;
+      padding: 14px 20px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 15px; font-weight: 800; color: var(--blue); letter-spacing: -.4px;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .avatar-chip {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--blue-lt);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    /* ── SCROLL ── */
+    .scroll-area {
+      overflow-y: auto;
+      max-height: 680px;
+      padding-bottom: 76px;
+      scroll-behavior: smooth;
+      flex: 1;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* ── STATES ── */
+    .state { display: none; }
+    .state.active { display: flex; flex-direction: column; }
+
+    /* ── ANNOT ── */
+    .annot {
+      margin: 5px 16px;
+      padding: 6px 10px;
+      background: #FFFDE7;
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      font-size: 10px; color: #92400E; line-height: 1.4;
+    }
+
+    /* ─────────────────────────────
+       STATE 1 · SCORE SYNTHÉTIQUE
+       ───────────────────────────── */
+    .score-hero {
+      background: linear-gradient(150deg, #0F172A 0%, #1E3A6E 100%);
+      padding: 22px 20px 20px;
+      color: white;
+    }
+    .score-hero-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .score-date { font-size: 11px; opacity: .55; text-transform: uppercase; letter-spacing: .6px; }
+    .score-greeting { font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 18px; }
+    .gauges-row {
+      display: flex; justify-content: space-around; gap: 8px;
+    }
+    .gauge-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      flex: 1;
+    }
+    .gauge-svg { position: relative; width: 80px; height: 80px; }
+    .gauge-svg svg { transform: rotate(-90deg); }
+    .gauge-label-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .gauge-pct { font-size: 20px; font-weight: 900; line-height: 1; }
+    .gauge-name { font-size: 10px; opacity: .7; }
+    .gauge-title { font-size: 11px; font-weight: 700; opacity: .85; }
+    .gauge-sub { font-size: 10px; opacity: .55; }
+
+    /* Score track */
+    .score-track { background: rgba(255,255,255,.1); }
+    .score-fill-sleep   { stroke: #4ADE80; }
+    .score-fill-energy  { stroke: #60A5FA; }
+    .score-fill-mood    { stroke: #F472B6; }
+
+    /* Insight card */
+    .insight-card {
+      margin: 14px 16px 0;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .insight-icon { font-size: 24px; flex-shrink: 0; }
+    .insight-text { flex: 1; }
+    .insight-text h4 { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .insight-text p { font-size: 12px; opacity: .72; line-height: 1.4; }
+
+    /* Carnet rapide */
+    .carnet-quick {
+      margin: 12px 16px 0;
+      background: var(--pink);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      color: white;
+    }
+    .carnet-quick .cq-icon { font-size: 22px; }
+    .carnet-quick .cq-info { flex: 1; }
+    .carnet-quick .cq-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+    .carnet-quick .cq-info p { font-size: 12px; opacity: .8; }
+    .carnet-quick .cq-btn {
+      background: rgba(255,255,255,.2); border: none; border-radius: 8px;
+      padding: 8px 13px; color: white; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+
+    /* Trend mini */
+    .trend-sec { padding: 18px 16px 0; }
+    .trend-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .sec-title { font-size: 15px; font-weight: 800; color: var(--gray-900); }
+    .sec-link { font-size: 12px; color: var(--blue); font-weight: 600; }
+    .trend-card {
+      background: white; border-radius: var(--r);
+      padding: 16px; box-shadow: var(--sh); border: 1px solid var(--gray-100);
+    }
+    .trend-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+    .trend-row:not(:last-child) { border-bottom: 1px solid var(--gray-100); margin-bottom: 4px; }
+    .trend-ico {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .trend-ico.s { background: #ECFDF5; }
+    .trend-ico.e { background: #EFF6FF; }
+    .trend-ico.m { background: #FDF2F8; }
+    .trend-meta { flex: 1; }
+    .trend-meta h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 1px; }
+    .trend-meta span { font-size: 11px; color: var(--gray-400); }
+    .trend-bar-wrap { width: 80px; }
+    .trend-bar { height: 5px; background: var(--gray-100); border-radius: 3px; margin-bottom: 3px; overflow: hidden; }
+    .trend-fill { height: 100%; border-radius: 3px; }
+    .trend-fill.s { background: linear-gradient(90deg, #4ADE80, #22C55E); }
+    .trend-fill.e { background: linear-gradient(90deg, #60A5FA, #3B82F6); }
+    .trend-fill.m { background: linear-gradient(90deg, #F472B6, #EC4899); }
+    .trend-val { font-size: 11px; font-weight: 800; text-align: right; }
+    .trend-val.s { color: #16A34A; }
+    .trend-val.e { color: #2563EB; }
+    .trend-val.m { color: #DB2777; }
+    .trend-delta { font-size: 10px; color: var(--green); font-weight: 700; }
+    .trend-delta.neg { color: #EF4444; }
+
+    /* ─────────────────────────────
+       STATE 2 · POST-CARNET
+       ───────────────────────────── */
+    .post-carnet-hero {
+      background: linear-gradient(145deg, #0F3B2E 0%, #166534 60%, #22C55E 100%);
+      padding: 32px 22px 26px;
+      color: white;
+      text-align: center;
+    }
+    .check-anim {
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      margin: 0 auto 16px;
+      border: 2.5px solid rgba(255,255,255,.35);
+    }
+    .post-carnet-hero .eyebrow {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: .8px; opacity: .65; margin-bottom: 6px;
+    }
+    .post-headline {
+      font-size: 22px; font-weight: 900;
+      line-height: 1.2; letter-spacing: -.4px;
+      margin-bottom: 8px;
+    }
+    .post-sub { font-size: 14px; opacity: .78; line-height: 1.5; }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; padding: 18px 16px 0;
+    }
+    .stat-card {
+      background: white; border-radius: 12px;
+      padding: 14px; box-shadow: var(--sh);
+      border: 1px solid var(--gray-100);
+    }
+    .stat-card .sc-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--gray-400); margin-bottom: 6px;
+    }
+    .stat-card .sc-val {
+      font-size: 24px; font-weight: 900; color: var(--gray-900);
+      letter-spacing: -.5px; line-height: 1;
+    }
+    .stat-card .sc-unit { font-size: 13px; font-weight: 500; color: var(--gray-400); }
+    .stat-card .sc-delta {
+      font-size: 11px; font-weight: 700; margin-top: 4px;
+    }
+    .stat-card .sc-delta.up { color: var(--green); }
+    .stat-card .sc-delta.dn { color: #EF4444; }
+    .stat-card .sc-delta.eq { color: var(--gray-400); }
+
+    /* Week graph simplified */
+    .week-graph {
+      padding: 18px 16px 0;
+    }
+    .wg-card {
+      background: white; border-radius: var(--r);
+      padding: 16px; box-shadow: var(--sh); border: 1px solid var(--gray-100);
+    }
+    .wg-headline { font-size: 13px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; }
+    .wg-sub { font-size: 12px; color: var(--gray-500); margin-bottom: 14px; line-height: 1.4; }
+    .bars-row {
+      display: flex; align-items: flex-end; gap: 6px; height: 80px;
+      border-bottom: 1px solid var(--gray-100);
+      padding-bottom: 8px; margin-bottom: 6px;
+    }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .bar-wrap { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+    .bar-inner { border-radius: 4px 4px 0 0; width: 100%; min-height: 3px; }
+    .bar-lbl { font-size: 9px; color: var(--gray-400); font-weight: 600; }
+    .bar-val { font-size: 9px; font-weight: 700; color: var(--gray-700); }
+    .current-bar .bar-inner { background: var(--green); }
+    .past-bar .bar-inner { background: var(--blue-lt); }
+    .future-bar .bar-inner { background: repeating-linear-gradient(45deg, var(--gray-100) 0, var(--gray-100) 3px, white 3px, white 6px); border: 1.5px dashed var(--gray-200); }
+    .future-bar .bar-lbl, .future-bar .bar-val { opacity: .4; }
+    .wg-footer { font-size: 11px; color: var(--gray-500); }
+
+    /* Next action */
+    .next-action {
+      padding: 14px 16px 0;
+    }
+    .na-card {
+      background: var(--blue-lt); border-radius: 12px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .na-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--blue); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .na-info { flex: 1; }
+    .na-info h4 { font-size: 13px; font-weight: 700; color: var(--blue-dk); margin-bottom: 2px; }
+    .na-info p { font-size: 12px; color: var(--gray-500); }
+    .na-arrow { font-size: 18px; color: var(--blue); font-weight: 700; }
+
+    /* ─────────────────────────────
+       STATE 3 · FENÊTRE PRESCRIPTIVE
+       ───────────────────────────── */
+    .qpp-result-header {
+      background: linear-gradient(145deg, #1440CC, #1E5BFF, #6366F1);
+      padding: 28px 22px 22px;
+      color: white;
+      text-align: center;
+    }
+    .qpp-result-header .tag {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .8px; opacity: .65; margin-bottom: 8px;
+    }
+    .qpp-result-header h2 {
+      font-size: 20px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 6px;
+    }
+    .qpp-result-header p { font-size: 13px; opacity: .78; line-height: 1.45; }
+
+    .profile-chips {
+      display: flex; flex-wrap: wrap; gap: 7px;
+      padding: 16px 16px 0;
+    }
+    .pchip {
+      display: flex; align-items: center; gap: 5px;
+      background: white; border: 1.5px solid var(--gray-100);
+      border-radius: 20px; padding: 5px 11px;
+      font-size: 11px; font-weight: 600; color: var(--gray-700);
+      box-shadow: var(--sh);
+    }
+    .pchip .pci { font-size: 13px; }
+
+    /* Sleep window card */
+    .sw-card {
+      margin: 14px 16px 0;
+      background: white; border-radius: var(--r);
+      padding: 18px; box-shadow: var(--sh-md); border: 2px solid var(--blue);
+    }
+    .sw-card .sw-tag {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
+      color: var(--blue); font-weight: 800; margin-bottom: 6px;
+    }
+    .sw-card h3 { font-size: 18px; font-weight: 900; color: var(--gray-900); margin-bottom: 4px; letter-spacing: -.3px; }
+    .sw-card p { font-size: 12px; color: var(--gray-500); margin-bottom: 16px; line-height: 1.5; }
+
+    .time-slots {
+      display: flex; gap: 10px; margin-bottom: 16px;
+    }
+    .time-slot {
+      flex: 1; background: var(--gray-50); border-radius: 10px;
+      padding: 12px; text-align: center;
+    }
+    .time-slot .ts-label { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); margin-bottom: 4px; }
+    .time-slot .ts-time { font-size: 26px; font-weight: 900; color: var(--gray-900); letter-spacing: -.5px; line-height: 1; margin-bottom: 2px; }
+    .time-slot .ts-sub { font-size: 10px; color: var(--gray-400); }
+    .time-slot.highlight { background: var(--blue-lt); border: 1.5px solid var(--blue); }
+    .time-slot.highlight .ts-time { color: var(--blue); }
+
+    .sleep-visual {
+      height: 8px; background: var(--gray-100); border-radius: 4px;
+      overflow: hidden; margin-bottom: 10px; position: relative;
+    }
+    .sleep-fill {
+      height: 100%; background: linear-gradient(90deg, var(--blue), #6366F1);
+      border-radius: 4px;
+      width: 75%; /* 6h out of 8h = 75% */
+    }
+    .sleep-ticks {
+      display: flex; justify-content: space-between;
+      font-size: 9px; color: var(--gray-400); margin-bottom: 12px;
+    }
+
+    .sw-why {
+      background: var(--blue-lt); border-radius: 10px; padding: 11px 13px;
+      font-size: 12px; color: var(--blue-dk); line-height: 1.5;
+    }
+    .sw-why strong { font-weight: 800; }
+
+    .week-arc {
+      margin: 14px 16px 0;
+      background: white; border-radius: var(--r);
+      padding: 16px; box-shadow: var(--sh); border: 1px solid var(--gray-100);
+    }
+    .wa-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .wa-header h4 { font-size: 13px; font-weight: 800; color: var(--gray-900); }
+    .wa-header span { font-size: 11px; color: var(--gray-400); }
+    .weeks-row { display: flex; gap: 5px; }
+    .wk-item { flex: 1; text-align: center; }
+    .wk-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      margin: 0 auto 4px;
+    }
+    .wk-circle.done { background: var(--blue); color: white; }
+    .wk-circle.current { background: var(--pink); color: white; box-shadow: 0 0 0 3px rgba(233,30,140,.2); }
+    .wk-circle.future {
+      background: var(--gray-100); color: var(--gray-400);
+      border: 2px dashed var(--gray-200);
+    }
+    .wk-label { font-size: 9px; color: var(--gray-400); }
+    .wk-label.active { color: var(--gray-700); font-weight: 700; }
+    .milestone { font-size: 9px; color: var(--blue); font-weight: 700; margin-top: 2px; }
+
+    .confirm-btn {
+      margin: 16px 16px 0;
+      display: block; width: calc(100% - 32px);
+      padding: 15px; background: var(--blue); color: white;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 800; cursor: pointer;
+      text-align: center; letter-spacing: -.2px;
+    }
+    .confirm-btn:hover { background: var(--blue-dk); }
+
+    /* ─────────────────────────────
+       STATE 4 · STRUCTURE MODULAIRE
+       ───────────────────────────── */
+    .prog-header {
+      background: white;
+      padding: 16px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .prog-header .prog-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--gray-400); margin-bottom: 4px; }
+    .prog-header h2 { font-size: 18px; font-weight: 900; color: var(--gray-900); margin-bottom: 10px; letter-spacing: -.3px; }
+    .prog-meta-row { display: flex; gap: 8px; }
+    .prog-badge {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--gray-100); border-radius: 6px; padding: 4px 9px;
+      font-size: 11px; font-weight: 600; color: var(--gray-700);
+    }
+    .global-progress {
+      padding: 12px 16px;
+      background: var(--gray-50);
+    }
+    .gp-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .gp-label { font-size: 12px; font-weight: 700; color: var(--gray-700); }
+    .gp-pct { font-size: 12px; font-weight: 900; color: var(--blue); }
+    .gp-bar { height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden; }
+    .gp-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #60A5FA); border-radius: 3px; }
+
+    .modules-list { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+
+    .module-card {
+      background: white; border-radius: var(--r);
+      border: 1.5px solid var(--gray-100);
+      overflow: hidden; box-shadow: var(--sh);
+    }
+    .module-card.active { border-color: var(--blue); }
+    .module-card.done { opacity: .75; }
+
+    .module-header {
+      padding: 14px 14px 12px;
+      cursor: pointer;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .mod-num {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; flex-shrink: 0;
+    }
+    .mod-num.done-n { background: var(--green); color: white; }
+    .mod-num.active-n { background: var(--blue); color: white; }
+    .mod-num.future-n { background: var(--gray-100); color: var(--gray-400); }
+
+    .mod-info { flex: 1; }
+    .mod-info .mod-tag {
+      font-size: 9px; text-transform: uppercase; letter-spacing: .6px;
+      font-weight: 800; margin-bottom: 3px;
+    }
+    .mod-info h3 { font-size: 14px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; letter-spacing: -.2px; }
+    .mod-meta { display: flex; gap: 8px; align-items: center; }
+    .mod-chip {
+      font-size: 10px; color: var(--gray-500); font-weight: 600;
+      display: flex; align-items: center; gap: 3px;
+    }
+    .mod-prog {
+      width: 60px;
+    }
+    .mod-prog .mp-bar { height: 3px; background: var(--gray-100); border-radius: 2px; overflow: hidden; margin-bottom: 2px; }
+    .mod-prog .mp-fill { height: 100%; border-radius: 2px; }
+    .mod-prog .mp-fill.done-p { background: var(--green); }
+    .mod-prog .mp-fill.active-p { background: var(--blue); }
+    .mod-prog .mp-pct { font-size: 9px; font-weight: 800; text-align: right; }
+    .mod-prog .mp-pct.done-p { color: var(--green-dk); }
+    .mod-prog .mp-pct.active-p { color: var(--blue); }
+    .mod-chevron { font-size: 16px; color: var(--gray-300); margin-top: 2px; transition: transform .2s; }
+    .mod-chevron.open { transform: rotate(90deg); }
+
+    .parts-list {
+      display: none;
+      border-top: 1px solid var(--gray-100);
+    }
+    .parts-list.open { display: block; }
+
+    .part-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-50);
+    }
+    .part-item:last-child { border-bottom: none; }
+    .part-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      font-size: 10px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .part-num.p-done { background: var(--green); color: white; font-size: 11px; }
+    .part-num.p-active { background: var(--blue); color: white; }
+    .part-num.p-lock { background: var(--gray-100); color: var(--gray-400); }
+    .part-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .part-text { flex: 1; }
+    .part-text .pt-label { font-size: 12px; font-weight: 700; color: var(--gray-900); margin-bottom: 1px; }
+    .part-text .pt-sub { font-size: 10px; color: var(--gray-400); }
+    .part-time {
+      font-size: 11px; color: var(--gray-400); font-weight: 600;
+      white-space: nowrap;
+    }
+    .play-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .play-btn.active-play { background: var(--blue); color: white; }
+    .play-btn.done-play { background: var(--gray-100); color: var(--gray-500); }
+    .play-btn.lock-play { background: var(--gray-50); color: var(--gray-300); cursor: not-allowed; }
+
+    .streak-banner {
+      margin: 10px 16px 0;
+      background: linear-gradient(135deg, #7C3AED, #6366F1);
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 12px; color: white;
+    }
+    .sb-icon { font-size: 24px; }
+    .sb-info { flex: 1; }
+    .sb-info h4 { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+    .sb-info p { font-size: 11px; opacity: .78; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      border-top: 1px solid var(--gray-100);
+      padding: 10px 10px 14px;
+      display: flex; justify-content: space-around;
+      background: white;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; min-width: 52px;
+    }
+    .nav-item .ni { font-size: 22px; }
+    .nav-item .nl { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+    .nav-item.on .nl { color: var(--blue); font-weight: 800; }
+
+    .spacer { height: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <span class="topbar-label">Pattern :</span>
+  <div class="tab-group">
+    <button class="tab-btn active" onclick="show('s1', this)">🎯 P0 · Score matinal</button>
+    <button class="tab-btn"        onclick="show('s2', this)">✅ P0 · Post-carnet</button>
+    <button class="tab-btn"        onclick="show('s3', this)">🌙 P1 · Fenêtre prescriptive</button>
+    <button class="tab-btn"        onclick="show('s4', this)">📋 P1 · Structure modulaire</button>
+  </div>
+</div>
+
+<!-- ── PHONE ── -->
+<div class="phone">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="logo"><div class="logo-dot"></div>LineCoaching</div>
+    <div class="header-right">
+      <span style="font-size:18px;cursor:pointer">🔔</span>
+      <div class="avatar-chip">👤</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       S1 · SCORE SYNTHÉTIQUE MATINAL
+       ═══════════════════════════════ -->
+  <div class="state active scroll-area" id="s1">
+
+    <div class="score-hero">
+      <div class="score-hero-top">
+        <div class="score-date">Vendredi 12 juin · Matin</div>
+        <span style="font-size:13px;opacity:.6">J14</span>
+      </div>
+      <div class="score-greeting">Bonjour Aline 👋</div>
+
+      <!-- 3 jauges SVG -->
+      <div class="gauges-row">
+
+        <!-- Sommeil -->
+        <div class="gauge-wrap">
+          <div class="gauge-svg">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle class="score-track" cx="40" cy="40" r="34" stroke-width="6" fill="none"/>
+              <circle class="score-fill-sleep" cx="40" cy="40" r="34" stroke-width="6" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="213.6"
+                stroke-dashoffset="53"
+                style="transition:stroke-dashoffset 1s ease"/>
+            </svg>
+            <div class="gauge-label-center">
+              <div class="gauge-pct" style="color:#4ADE80">75</div>
+              <div class="gauge-name" style="color:rgba(255,255,255,.6);font-size:8px">%</div>
+            </div>
+          </div>
+          <div class="gauge-title">Sommeil</div>
+          <div class="gauge-sub">+8 pts</div>
+        </div>
+
+        <!-- Énergie -->
+        <div class="gauge-wrap">
+          <div class="gauge-svg">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle class="score-track" cx="40" cy="40" r="34" stroke-width="6" fill="none"/>
+              <circle class="score-fill-energy" cx="40" cy="40" r="34" stroke-width="6" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="213.6"
+                stroke-dashoffset="85"
+                style="transition:stroke-dashoffset 1s ease"/>
+            </svg>
+            <div class="gauge-label-center">
+              <div class="gauge-pct" style="color:#60A5FA">60</div>
+              <div class="gauge-name" style="color:rgba(255,255,255,.6);font-size:8px">%</div>
+            </div>
+          </div>
+          <div class="gauge-title">Énergie</div>
+          <div class="gauge-sub">Stable</div>
+        </div>
+
+        <!-- Humeur -->
+        <div class="gauge-wrap">
+          <div class="gauge-svg">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle class="score-track" cx="40" cy="40" r="34" stroke-width="6" fill="none"/>
+              <circle class="score-fill-mood" cx="40" cy="40" r="34" stroke-width="6" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="213.6"
+                stroke-dashoffset="43"
+                style="transition:stroke-dashoffset 1s ease"/>
+            </svg>
+            <div class="gauge-label-center">
+              <div class="gauge-pct" style="color:#F472B6">80</div>
+              <div class="gauge-name" style="color:rgba(255,255,255,.6);font-size:8px">%</div>
+            </div>
+          </div>
+          <div class="gauge-title">Humeur</div>
+          <div class="gauge-sub">+12 pts</div>
+        </div>
+      </div>
+
+      <!-- Insight -->
+      <div class="insight-card">
+        <div class="insight-icon">🌙</div>
+        <div class="insight-text">
+          <h4>Votre meilleure semaine</h4>
+          <p>Vous avez dormi en moyenne 6h52 cette semaine, soit 48 min de plus qu'en S1.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="annot">✦ 3 scores = verdict immédiat. Raison de revenir chaque matin (pattern Oura/WHOOP sans capteur).</div>
+
+    <!-- Carnet du soir à remplir -->
+    <div class="carnet-quick">
+      <div class="cq-icon">📓</div>
+      <div class="cq-info">
+        <h4>Carnet du soir</h4>
+        <p>Non rempli · Impacte vos scores demain</p>
+      </div>
+      <button class="cq-btn">Remplir →</button>
+    </div>
+
+    <div class="annot">✦ Lien explicite carnet → score : montrer la causalité rend le remplissage utile, pas subi.</div>
+
+    <!-- Tendances -->
+    <div class="trend-sec">
+      <div class="trend-header">
+        <div class="sec-title">Évolution S1 → S2</div>
+        <a class="sec-link" href="#">Détail</a>
+      </div>
+      <div class="trend-card">
+        <div class="trend-row">
+          <div class="trend-ico s">😴</div>
+          <div class="trend-meta">
+            <h5>Sommeil</h5>
+            <span>6h52 moy · S2</span>
+          </div>
+          <div class="trend-bar-wrap">
+            <div class="trend-bar"><div class="trend-fill s" style="width:75%"></div></div>
+            <div class="trend-val s">75 % <span class="trend-delta">+8</span></div>
+          </div>
+        </div>
+        <div class="trend-row">
+          <div class="trend-ico e">⚡</div>
+          <div class="trend-meta">
+            <h5>Énergie</h5>
+            <span>Déclarée · Carnet</span>
+          </div>
+          <div class="trend-bar-wrap">
+            <div class="trend-bar"><div class="trend-fill e" style="width:60%"></div></div>
+            <div class="trend-val e">60 % <span class="trend-delta eq">→</span></div>
+          </div>
+        </div>
+        <div class="trend-row">
+          <div class="trend-ico m">😊</div>
+          <div class="trend-meta">
+            <h5>Humeur</h5>
+            <span>Déclarée · Carnet</span>
+          </div>
+          <div class="trend-bar-wrap">
+            <div class="trend-bar"><div class="trend-fill m" style="width:80%"></div></div>
+            <div class="trend-val m">80 % <span class="trend-delta">+12</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div><!-- /s1 -->
+
+
+  <!-- ═══════════════════════════════
+       S2 · POST-CARNET HEADLINE
+       ═══════════════════════════════ -->
+  <div class="state scroll-area" id="s2">
+
+    <!-- Hero reward -->
+    <div class="post-carnet-hero">
+      <div class="check-anim">✓</div>
+      <div class="eyebrow">Carnet du matin · J14</div>
+      <div class="post-headline">Cette nuit, vous avez dormi 6h 52m</div>
+      <div class="post-sub">C'est +48 min par rapport à votre moyenne de la semaine 1. Vous progressez.</div>
+    </div>
+
+    <div class="annot">✦ Headline narrative (pattern Sleepio) : donnée brute → phrase de coaching. Récompense immédiate du remplissage.</div>
+
+    <!-- Stats grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="sc-label">Endormissement</div>
+        <div class="sc-val">14 <span class="sc-unit">min</span></div>
+        <div class="sc-delta up">↓ 8 min vs S1</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Réveils nuit</div>
+        <div class="sc-val">1 <span class="sc-unit">fois</span></div>
+        <div class="sc-delta up">↓ vs 3 fois en S1</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Énergie au réveil</div>
+        <div class="sc-val">7 <span class="sc-unit">/10</span></div>
+        <div class="sc-delta up">↑ +2 pts</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Humeur</div>
+        <div class="sc-val">😊 <span class="sc-unit">Bien</span></div>
+        <div class="sc-delta eq">→ Stable</div>
+      </div>
+    </div>
+
+    <!-- Graphe semaines -->
+    <div class="week-graph">
+      <div class="wg-card">
+        <div class="wg-headline">Progression sur 6 semaines</div>
+        <div class="wg-sub">La plupart des utilisateurs ressentent une nette amélioration à la S4.</div>
+        <div class="bars-row">
+          <!-- S1 -->
+          <div class="bar-col past-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:35%;background:var(--blue-lt)"></div></div>
+            <div class="bar-lbl">S1</div>
+            <div class="bar-val" style="color:var(--gray-400)">6h04</div>
+          </div>
+          <!-- S2 current -->
+          <div class="bar-col current-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:65%"></div></div>
+            <div class="bar-lbl" style="color:var(--green-dk);font-weight:800">S2</div>
+            <div class="bar-val" style="color:var(--green-dk);font-weight:800">6h52</div>
+          </div>
+          <!-- S3-S6 futures -->
+          <div class="bar-col future-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:72%"></div></div>
+            <div class="bar-lbl">S3</div>
+            <div class="bar-val">?</div>
+          </div>
+          <div class="bar-col future-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:80%"></div></div>
+            <div class="bar-lbl">S4</div>
+            <div class="bar-val">?</div>
+          </div>
+          <div class="bar-col future-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:85%"></div></div>
+            <div class="bar-lbl">S5</div>
+            <div class="bar-val">?</div>
+          </div>
+          <div class="bar-col future-bar">
+            <div class="bar-wrap"><div class="bar-inner" style="height:90%"></div></div>
+            <div class="bar-lbl">S6</div>
+            <div class="bar-val">?</div>
+          </div>
+        </div>
+        <div class="wg-footer">📍 Vous êtes ici · S2 sur 6</div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Projection S3-S6 grisée (pattern Sleepio) : montre le chemin restant, crée l'envie d'y arriver.</div>
+
+    <!-- Next action -->
+    <div class="next-action">
+      <div class="na-card">
+        <div class="na-icon">▶</div>
+        <div class="na-info">
+          <h4>Prochaine étape · Semaine 2</h4>
+          <p>Partie 3 · La connexion lit-sommeil · 2 min</p>
+        </div>
+        <div class="na-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div><!-- /s2 -->
+
+
+  <!-- ═══════════════════════════════
+       S3 · FENÊTRE PRESCRIPTIVE
+       ═══════════════════════════════ -->
+  <div class="state scroll-area" id="s3">
+
+    <div class="qpp-result-header">
+      <div class="tag">Profil complété · 8 réponses</div>
+      <h2>Votre programme personnalisé est prêt</h2>
+      <p>Basé sur votre profil, voici les recommandations de Marie pour les 2 premières semaines.</p>
+    </div>
+
+    <!-- Profil chips -->
+    <div class="profile-chips">
+      <div class="pchip"><span class="pci">😴</span> Endormissement difficile</div>
+      <div class="pchip"><span class="pci">⏰</span> Réveil tôt involontaire</div>
+      <div class="pchip"><span class="pci">📱</span> Écran avant lit</div>
+      <div class="pchip"><span class="pci">☕</span> Café après 15h</div>
+    </div>
+
+    <div class="annot">✦ Profil affiché = QPP valorisé. L'utilisateur voit que ses réponses ont servi à quelque chose.</div>
+
+    <!-- Fenêtre de sommeil -->
+    <div class="sw-card">
+      <div class="sw-tag">⭐ Votre fenêtre recommandée</div>
+      <h3>6 heures de sommeil</h3>
+      <p>Pour les semaines 1 et 2, nous réduisons votre fenêtre au lit. Cela renforce la pression de sommeil et améliore la qualité.</p>
+
+      <div class="time-slots">
+        <div class="time-slot highlight">
+          <div class="ts-label">Coucher</div>
+          <div class="ts-time">23h30</div>
+          <div class="ts-sub">heure suggérée</div>
+        </div>
+        <div class="time-slot" style="background:var(--gray-50);display:flex;align-items:center;justify-content:center;flex:0 0 30px;border-radius:50%;font-size:18px;padding:0;min-height:60px;">→</div>
+        <div class="time-slot highlight">
+          <div class="ts-label">Réveil</div>
+          <div class="ts-time">05h30</div>
+          <div class="ts-sub">heure fixe</div>
+        </div>
+      </div>
+
+      <!-- Visual bar -->
+      <div class="sleep-ticks">
+        <span>22h</span><span>23h</span><span>00h</span><span>02h</span><span>04h</span><span>06h</span>
+      </div>
+      <div class="sleep-visual">
+        <div class="sleep-fill"></div>
+      </div>
+
+      <div class="sw-why">
+        <strong>Pourquoi 6h et pas 8h ?</strong> En TCC du sommeil, moins de temps au lit = meilleure efficacité. Dès la semaine 3, nous allongerons votre fenêtre au rythme de vos progrès.
+      </div>
+    </div>
+
+    <div class="annot">✦ Prescription immédiate post-QPP (pattern Sleepio) : livrable tangible dès J1. L'utilisateur repart avec quelque chose de concret.</div>
+
+    <!-- Arc 6 semaines -->
+    <div class="week-arc">
+      <div class="wa-header">
+        <h4>Votre parcours · 6 semaines</h4>
+        <span>Programme ThéraSomnia</span>
+      </div>
+      <div class="weeks-row">
+        <div class="wk-item">
+          <div class="wk-circle current">1</div>
+          <div class="wk-label active">Vous êtes ici</div>
+          <div class="milestone">Profil ✓</div>
+        </div>
+        <div class="wk-item">
+          <div class="wk-circle future">2</div>
+          <div class="wk-label">Sem. 2</div>
+          <div class="milestone" style="opacity:.3">Fenêtre+</div>
+        </div>
+        <div class="wk-item">
+          <div class="wk-circle future">3</div>
+          <div class="wk-label">Sem. 3</div>
+          <div class="milestone" style="opacity:.3">Allongement</div>
+        </div>
+        <div class="wk-item">
+          <div class="wk-circle future">4</div>
+          <div class="wk-label">Sem. 4</div>
+          <div class="milestone" style="color:var(--orange);opacity:.5">🔥 Cap.</div>
+        </div>
+        <div class="wk-item">
+          <div class="wk-circle future">5</div>
+          <div class="wk-label">Sem. 5</div>
+        </div>
+        <div class="wk-item">
+          <div class="wk-circle future">6</div>
+          <div class="wk-label">Fin</div>
+          <div class="milestone" style="opacity:.3">🏆</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="confirm-btn">Je valide ma fenêtre de sommeil →</button>
+
+    <div class="annot" style="margin-top:10px">✦ Arc 6 semaines visible dès J1 : expectation management. Les utilisateurs abandonnent moins quand ils savent combien il reste.</div>
+
+    <div class="spacer"></div>
+  </div><!-- /s3 -->
+
+
+  <!-- ═══════════════════════════════
+       S4 · STRUCTURE MODULAIRE
+       ═══════════════════════════════ -->
+  <div class="state scroll-area" id="s4">
+
+    <!-- Header programme -->
+    <div class="prog-header">
+      <div class="prog-tag">ThéraSomnia · Semaine 2 / 6</div>
+      <h2>Bâtir un mental du sommeil</h2>
+      <div class="prog-meta-row">
+        <div class="prog-badge">📅 6 semaines</div>
+        <div class="prog-badge">⏱ ~12 min/sem.</div>
+        <div class="prog-badge">📖 7 modules</div>
+      </div>
+    </div>
+
+    <!-- Progression globale -->
+    <div class="global-progress">
+      <div class="gp-row">
+        <div class="gp-label">Progression globale</div>
+        <div class="gp-pct">22 %</div>
+      </div>
+      <div class="gp-bar"><div class="gp-fill" style="width:22%"></div></div>
+    </div>
+
+    <!-- Streak -->
+    <div class="streak-banner">
+      <div class="sb-icon">🔥</div>
+      <div class="sb-info">
+        <h4>12 jours consécutifs</h4>
+        <p>Remplissez le carnet ce soir pour continuer votre série</p>
+      </div>
+    </div>
+
+    <div class="annot">✦ Streak explicite + raison de le maintenir = motivation de rétention quotidienne.</div>
+
+    <!-- Modules list -->
+    <div class="modules-list">
+
+      <!-- Module 1 · DONE -->
+      <div class="module-card done" id="mc1">
+        <div class="module-header" onclick="toggleMod('mc1')">
+          <div class="mod-num done-n">✓</div>
+          <div class="mod-info">
+            <div class="mod-tag" style="color:var(--green-dk)">Semaine 1 · Terminé</div>
+            <h3>Les bases du sommeil</h3>
+            <div class="mod-meta">
+              <div class="mod-chip">📖 5 parties</div>
+              <div class="mod-chip">⏱ 11 min</div>
+            </div>
+          </div>
+          <div class="mod-prog">
+            <div class="mp-bar"><div class="mp-fill done-p" style="width:100%"></div></div>
+            <div class="mp-pct done-p">100 %</div>
+          </div>
+          <div class="mod-chevron" id="chev-mc1">›</div>
+        </div>
+        <div class="parts-list" id="pl-mc1">
+          <div class="part-item">
+            <div class="part-num p-done">✓</div>
+            <div class="part-icon" style="background:#ECFDF5">😴</div>
+            <div class="part-text">
+              <div class="pt-label">La vérité sur le sommeil</div>
+              <div class="pt-sub">Partie 1 · Psychoéducation</div>
+            </div>
+            <div class="part-time">4 min</div>
+            <button class="play-btn done-play">↺</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-done">✓</div>
+            <div class="part-icon" style="background:#ECFDF5">🧠</div>
+            <div class="part-text">
+              <div class="pt-label">Le vérificateur de pensées</div>
+              <div class="pt-sub">Partie 2 · Exercice TCC</div>
+            </div>
+            <div class="part-time">4 min</div>
+            <button class="play-btn done-play">↺</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-done">✓</div>
+            <div class="part-icon" style="background:#ECFDF5">🛏</div>
+            <div class="part-text">
+              <div class="pt-label">La connexion lit-sommeil</div>
+              <div class="pt-sub">Partie 3 · Restriction</div>
+            </div>
+            <div class="part-time">2 min</div>
+            <button class="play-btn done-play">↺</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 2 · ACTIVE -->
+      <div class="module-card active" id="mc2">
+        <div class="module-header" onclick="toggleMod('mc2')">
+          <div class="mod-num active-n">2</div>
+          <div class="mod-info">
+            <div class="mod-tag" style="color:var(--blue)">Semaine 2 · En cours</div>
+            <h3>Bâtir un mental du sommeil</h3>
+            <div class="mod-meta">
+              <div class="mod-chip">📖 7 parties</div>
+              <div class="mod-chip">⏱ 14 min</div>
+            </div>
+          </div>
+          <div class="mod-prog">
+            <div class="mp-bar"><div class="mp-fill active-p" style="width:28%"></div></div>
+            <div class="mp-pct active-p">28 %</div>
+          </div>
+          <div class="mod-chevron open" id="chev-mc2">›</div>
+        </div>
+        <div class="parts-list open" id="pl-mc2">
+          <div class="part-item">
+            <div class="part-num p-done">✓</div>
+            <div class="part-icon" style="background:#EFF6FF">🌙</div>
+            <div class="part-text">
+              <div class="pt-label">Les croyances sur le sommeil</div>
+              <div class="pt-sub">Partie 1 · 4 min</div>
+            </div>
+            <div class="part-time">4 min</div>
+            <button class="play-btn done-play">↺</button>
+          </div>
+          <div class="part-item" style="background:rgba(30,91,255,.04);border-radius:8px">
+            <div class="part-num p-active">►</div>
+            <div class="part-icon" style="background:var(--blue-lt)">💭</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--blue)">Le vérificateur d'inquiétude</div>
+              <div class="pt-sub">Partie 2 · En cours</div>
+            </div>
+            <div class="part-time" style="color:var(--blue);font-weight:700">2 min</div>
+            <button class="play-btn active-play">▶</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-lock">🔒</div>
+            <div class="part-icon" style="background:var(--gray-50)">🛌</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--gray-400)">Le lit est réservé au sommeil</div>
+              <div class="pt-sub">Partie 3 · 1 min</div>
+            </div>
+            <div class="part-time">1 min</div>
+            <button class="play-btn lock-play">🔒</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-lock">🔒</div>
+            <div class="part-icon" style="background:var(--gray-50)">📱</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--gray-400)">Le monde des écrans</div>
+              <div class="pt-sub">Partie 4 · 1 min</div>
+            </div>
+            <div class="part-time">1 min</div>
+            <button class="play-btn lock-play">🔒</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-lock">🔒</div>
+            <div class="part-icon" style="background:var(--gray-50)">⏰</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--gray-400)">La règle du quart d'heure</div>
+              <div class="pt-sub">Partie 5 · 2 min</div>
+            </div>
+            <div class="part-time">2 min</div>
+            <button class="play-btn lock-play">🔒</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-lock">🔒</div>
+            <div class="part-icon" style="background:var(--gray-50)">🧘</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--gray-400)">Relaxation progressive</div>
+              <div class="pt-sub">Partie 6 · 3 min</div>
+            </div>
+            <div class="part-time">3 min</div>
+            <button class="play-btn lock-play">🔒</button>
+          </div>
+          <div class="part-item">
+            <div class="part-num p-lock">🔒</div>
+            <div class="part-icon" style="background:var(--gray-50)">📓</div>
+            <div class="part-text">
+              <div class="pt-label" style="color:var(--gray-400)">Bilan de semaine 2</div>
+              <div class="pt-sub">Partie 7 · 1 min</div>
+            </div>
+            <div class="part-time">1 min</div>
+            <button class="play-btn lock-play">🔒</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module 3 · FUTURE -->
+      <div class="module-card" id="mc3">
+        <div class="module-header" onclick="toggleMod('mc3')">
+          <div class="mod-num future-n">3</div>
+          <div class="mod-info">
+            <div class="mod-tag" style="color:var(--gray-400)">Semaine 3 · Verrouillé</div>
+            <h3>Techniques d'endormissement</h3>
+            <div class="mod-meta">
+              <div class="mod-chip">📖 6 parties</div>
+              <div class="mod-chip">⏱ 12 min</div>
+            </div>
+          </div>
+          <div class="mod-prog">
+            <div class="mp-bar"><div class="mp-fill" style="width:0%;background:var(--gray-200)"></div></div>
+            <div class="mp-pct" style="color:var(--gray-300)">0 %</div>
+          </div>
+          <div class="mod-chevron" id="chev-mc3">›</div>
+        </div>
+      </div>
+
+      <!-- Module 4+ collapsed -->
+      <div class="module-card" style="opacity:.5;pointer-events:none">
+        <div class="module-header">
+          <div class="mod-num future-n">4</div>
+          <div class="mod-info">
+            <div class="mod-tag" style="color:var(--gray-400)">Semaine 4</div>
+            <h3>Gestion des ruminations</h3>
+            <div class="mod-meta"><div class="mod-chip">📖 5 parties</div><div class="mod-chip">⏱ 10 min</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modules-list -->
+
+    <div class="annot" style="margin-top:10px">✦ Structure modulaire visible (pattern Sleepio) : l'utilisateur voit tout le chemin. Parties numérotées + durées = transparence. Locked parties = curiosité sans frustration.</div>
+
+    <div class="spacer"></div>
+  </div><!-- /s4 -->
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="ni">🏠</span>
+      <span class="nl">Accueil</span>
+    </div>
+    <div class="nav-item on">
+      <span class="ni">📋</span>
+      <span class="nl">Programme</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">📓</span>
+      <span class="nl">Carnets</span>
+    </div>
+    <div class="nav-item">
+      <span class="ni">📊</span>
+      <span class="nl">Stats</span>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function toggleMod(id) {
+    const parts = document.getElementById('pl-' + id);
+    const chev  = document.getElementById('chev-' + id);
+    if (!parts) return;
+    parts.classList.toggle('open');
+    if (chev) chev.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>

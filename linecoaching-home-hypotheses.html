@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LineCoaching · 4 Hypothèses d'Accueil</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:     #1E5BFF;
+      --blue-dk:  #1440CC;
+      --blue-lt:  #EBF0FF;
+      --pink:     #E91E8C;
+      --green:    #22C55E;
+      --green-dk: #16A34A;
+      --green-lt: #F0FDF4;
+      --orange:   #F59E0B;
+      --purple:   #7C3AED;
+      --teal:     #0891B2;
+      --gray-50:  #F8F9FA;
+      --gray-100: #F1F3F5;
+      --gray-200: #E2E8F0;
+      --gray-400: #94A3B8;
+      --gray-500: #64748B;
+      --gray-700: #334155;
+      --gray-900: #0F172A;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #D8E2F5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── META TOPBAR ── */
+    .meta-topbar {
+      width: 100%;
+      background: #0F172A;
+      padding: 0;
+      position: sticky; top: 0; z-index: 300;
+    }
+    .meta-inner {
+      display: flex; align-items: stretch;
+      overflow-x: auto;
+    }
+    .meta-inner::-webkit-scrollbar { display: none; }
+    .hypo-tab {
+      flex: 1; min-width: 0;
+      padding: 0;
+      border: none; background: transparent;
+      cursor: pointer;
+      border-right: 1px solid rgba(255,255,255,.07);
+      transition: background .2s;
+      display: flex; flex-direction: column;
+    }
+    .hypo-tab:last-child { border-right: none; }
+    .hypo-tab:hover { background: rgba(255,255,255,.05); }
+    .hypo-tab.active { background: rgba(255,255,255,.1); }
+    .ht-color { height: 3px; border-radius: 0; }
+    .ht-body { padding: 10px 14px 12px; text-align: left; }
+    .ht-version { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.4); margin-bottom: 3px; }
+    .ht-name { font-size: 12px; font-weight: 800; color: white; line-height: 1.2; }
+    .ht-ref { font-size: 10px; color: rgba(255,255,255,.45); margin-top: 2px; }
+    .hypo-tab.active .ht-name { color: white; }
+
+    /* ── PHONE ── */
+    .phone {
+      width: 390px;
+      margin: 20px 0 40px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.08);
+      display: flex; flex-direction: column;
+    }
+
+    /* ── APP HEADER ── */
+    .app-header {
+      background: white;
+      padding: 14px 20px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--gray-100);
+      flex-shrink: 0;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 15px; font-weight: 800; color: var(--blue); letter-spacing: -.4px;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .hdr-right { display: flex; align-items: center; gap: 10px; }
+    .av { width: 30px; height: 30px; border-radius: 50%; background: var(--blue-lt); display: flex; align-items: center; justify-content: center; font-size: 15px; position: relative; }
+    .av .dot { width: 8px; height: 8px; background: var(--pink); border-radius: 50%; border: 1.5px solid white; position: absolute; top: -2px; right: -2px; }
+
+    /* ── SCROLL ── */
+    .scroll { overflow-y: auto; max-height: 680px; padding-bottom: 70px; }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    /* ── STATES ── */
+    .state { display: none; }
+    .state.on { display: flex; flex-direction: column; }
+
+    /* ── SUB STATES ── */
+    .sub { display: none; flex-direction: column; }
+    .sub.on { display: flex; }
+
+    /* ── MODE BAR ── */
+    .mode-bar {
+      width: 390px; display: flex;
+      background: white; border-radius: 10px;
+      padding: 4px; margin: 12px 0 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,.14);
+      gap: 4px; flex-shrink: 0;
+    }
+    .mode-btn {
+      flex: 1; border: none; background: transparent;
+      padding: 9px 10px; border-radius: 7px;
+      font-size: 11px; font-weight: 700; color: var(--gray-400);
+      cursor: pointer; transition: all .2s; line-height: 1.35; text-align: center;
+    }
+    .mode-btn.active { background: var(--gray-900); color: white; font-weight: 800; }
+
+    /* ── ONBOARDING SHARED ── */
+    .ob-steps {
+      display: flex; align-items: flex-start; margin: 20px 10px 0; gap: 0;
+    }
+    .ob-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .ob-step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900;
+    }
+    .ob-step-lbl { font-size: 10px; text-align: center; font-weight: 600; line-height: 1.35; }
+    .ob-step-line { flex: 1; height: 2px; background: rgba(255,255,255,.2); margin-top: 13px; }
+    .ob-cta-wrap { padding: 18px 18px 0; }
+    .ob-tip { text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 10px; line-height: 1.5; }
+
+    /* ── ANNOT ── */
+    .annot {
+      margin: 5px 16px;
+      padding: 6px 10px;
+      background: #FFFDE7;
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      font-size: 10px; color: #92400E; line-height: 1.4;
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bnav {
+      border-top: 1px solid var(--gray-100);
+      padding: 10px 10px 14px;
+      display: flex; justify-content: space-around;
+      background: white; flex-shrink: 0;
+    }
+    .bni { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-width: 50px; }
+    .bni .i { font-size: 20px; }
+    .bni .l { font-size: 9px; color: var(--gray-400); font-weight: 500; }
+    .bni.on .l { color: var(--blue); font-weight: 800; }
+
+    /* ── UTILS ── */
+    .sp { height: 10px; }
+    .btn-primary { display: block; width: 100%; padding: 15px; background: var(--pink); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; text-align: center; letter-spacing: -.2px; }
+    .btn-primary:hover { background: #C0186F; }
+    .btn-ghost { display: block; width: 100%; padding: 12px; background: transparent; color: var(--gray-500); border: 1.5px solid var(--gray-200); border-radius: 12px; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; margin-top: 8px; }
+    .card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,.07); border: 1px solid var(--gray-100); }
+    .sec { padding: 18px 18px 0; }
+    .sec-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .sec-title { font-size: 15px; font-weight: 800; color: var(--gray-900); }
+    .sec-link { font-size: 12px; color: var(--blue); font-weight: 600; }
+    .tag-sm { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; font-weight: 800; }
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+
+
+    /* ════════════════════════════════════
+       V1 — COACH FIRST (relationship-led)
+       ════════════════════════════════════ */
+    .v1-hero {
+      background: linear-gradient(145deg, #1440CC 0%, #1E5BFF 55%, #4B7FFF 100%);
+      padding: 24px 20px 20px;
+      color: white; position: relative; overflow: hidden;
+    }
+    .v1-hero::before {
+      content: '';
+      position: absolute; right: -40px; top: -40px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .v1-coach-row { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+    .v1-coach-av {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: rgba(255,255,255,.18);
+      border: 2.5px solid rgba(255,255,255,.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; flex-shrink: 0;
+    }
+    .v1-coach-info { flex: 1; }
+    .v1-coach-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .6; margin-bottom: 3px; }
+    .v1-coach-name { font-size: 19px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 4px; }
+    .v1-coach-msg { font-size: 13px; opacity: .85; line-height: 1.5; }
+    .v1-online { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 10px; font-weight: 700; margin-top: 6px; }
+    .v1-online::before { content: '●'; color: #4ADE80; }
+    .v1-session-card {
+      background: rgba(255,255,255,.12); border-radius: 12px;
+      padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    }
+    .v1-session-icon { width: 36px; height: 36px; background: rgba(255,255,255,.2); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .v1-session-info { flex: 1; }
+    .v1-session-info h4 { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+    .v1-session-info p { font-size: 11px; opacity: .7; }
+    .v1-session-btn { background: white; color: var(--blue); border: none; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+
+    .v1-msg-card {
+      margin: 14px 18px 0; background: var(--blue-lt); border-radius: 14px; padding: 16px;
+      border-left: 4px solid var(--blue);
+    }
+    .v1-msg-label { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--blue); font-weight: 800; margin-bottom: 6px; }
+    .v1-msg-text { font-size: 13px; color: var(--gray-700); line-height: 1.55; margin-bottom: 12px; font-style: italic; }
+    .v1-msg-cta { display: flex; gap: 8px; }
+    .v1-msg-btn { flex: 1; padding: 10px; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; border: none; }
+    .v1-msg-reply { background: var(--blue); color: white; }
+    .v1-msg-seen { background: white; color: var(--gray-500); border: 1.5px solid var(--gray-200); }
+
+    .v1-action-card {
+      margin: 10px 18px 0; background: white; border-radius: 14px; padding: 16px; border: 1.5px solid var(--gray-100); box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .v1-action-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--pink); font-weight: 800; margin-bottom: 5px; }
+    .v1-action-title { font-size: 16px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; letter-spacing: -.2px; }
+    .v1-action-desc { font-size: 12px; color: var(--gray-500); margin-bottom: 14px; line-height: 1.4; }
+
+    .v1-locked { margin: 8px 18px 0; background: var(--gray-50); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 11px; }
+    .v1-locked-ico { font-size: 20px; }
+    .v1-locked-info { flex: 1; }
+    .v1-locked-info h4 { font-size: 13px; font-weight: 600; color: var(--gray-400); margin-bottom: 1px; }
+    .v1-locked-info p { font-size: 11px; color: var(--gray-300); }
+
+
+    /* ════════════════════════════════════
+       V2 — SCORE DU JOUR (data-led)
+       ════════════════════════════════════ */
+    .v2-hero {
+      background: linear-gradient(145deg, #0F172A 0%, #1E3A5F 100%);
+      padding: 22px 20px 24px; color: white; text-align: center;
+    }
+    .v2-date { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; opacity: .5; margin-bottom: 12px; }
+    .v2-score-ring { position: relative; width: 140px; height: 140px; margin: 0 auto 14px; }
+    .v2-score-ring svg { transform: rotate(-90deg); }
+    .v2-score-center {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      text-align: center;
+    }
+    .v2-score-num { font-size: 42px; font-weight: 900; color: #4ADE80; line-height: 1; letter-spacing: -2px; }
+    .v2-score-unit { font-size: 11px; opacity: .6; }
+    .v2-score-label { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .v2-score-sub { font-size: 12px; opacity: .7; line-height: 1.4; margin-bottom: 14px; }
+    .v2-mini-row { display: flex; justify-content: center; gap: 20px; }
+    .v2-mini { text-align: center; }
+    .v2-mini .vm-val { font-size: 18px; font-weight: 900; }
+    .v2-mini .vm-lbl { font-size: 10px; opacity: .55; margin-top: 1px; }
+
+    .v2-carnet-banner {
+      margin: 16px 18px 0; background: linear-gradient(135deg, #1440CC, #3B7FFF); border-radius: 14px; padding: 16px; color: white; display: flex; align-items: center; gap: 14px;
+    }
+    .v2-carnet-icon { width: 44px; height: 44px; background: rgba(255,255,255,.18); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .v2-carnet-info { flex: 1; }
+    .v2-carnet-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+    .v2-carnet-info p { font-size: 12px; opacity: .78; }
+    .v2-carnet-btn { background: white; color: var(--blue); border: none; border-radius: 9px; padding: 10px 14px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+
+    .v2-scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 18px 0; }
+    .v2-score-card { background: white; border-radius: 12px; padding: 14px; border: 1.5px solid var(--gray-100); }
+    .v2-score-card .vsc-icon { font-size: 20px; margin-bottom: 6px; }
+    .v2-score-card .vsc-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 3px; font-weight: 700; }
+    .v2-score-card .vsc-val { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
+    .v2-score-card .vsc-sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+    .v2-score-card .vsc-bar { height: 4px; background: var(--gray-100); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .v2-score-card .vsc-fill { height: 100%; border-radius: 2px; }
+
+    .v2-insight { margin: 12px 18px 0; background: var(--green-lt); border-radius: 12px; padding: 13px 14px; border-left: 3px solid var(--green); }
+    .v2-insight h4 { font-size: 13px; font-weight: 800; color: var(--green-dk); margin-bottom: 3px; }
+    .v2-insight p { font-size: 12px; color: var(--green-dk); opacity: .8; line-height: 1.4; }
+
+    .v2-action { margin: 10px 18px 0; background: white; border-radius: 12px; padding: 14px; border: 1.5px solid var(--gray-100); display: flex; align-items: center; gap: 12px; }
+    .v2-action-icon { width: 38px; height: 38px; background: var(--pink); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .v2-action-info { flex: 1; }
+    .v2-action-info h4 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+    .v2-action-info p { font-size: 11px; color: var(--gray-500); }
+    .v2-action-arrow { font-size: 18px; color: var(--gray-300); }
+
+
+    /* ════════════════════════════════════
+       V3 — PLAN DU JOUR (ritual-led / Noom-Kwit)
+       ════════════════════════════════════ */
+    .v3-daybar {
+      background: white; padding: 14px 18px 12px; border-bottom: 1px solid var(--gray-100);
+    }
+    .v3-daybar-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .v3-greeting { font-size: 16px; font-weight: 900; color: var(--gray-900); }
+    .v3-streak { display: flex; align-items: center; gap: 5px; background: #FEF3C7; padding: 4px 11px; border-radius: 20px; }
+    .v3-streak span { font-size: 13px; font-weight: 900; color: #B45309; }
+    .v3-week { display: flex; gap: 6px; }
+    .v3-day {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; gap: 1px;
+      background: var(--gray-100); color: var(--gray-400);
+    }
+    .v3-day.done { background: var(--green); color: white; }
+    .v3-day.today { background: var(--blue); color: white; box-shadow: 0 0 0 3px var(--blue-lt); }
+
+    .v3-checkin {
+      margin: 14px 18px 0; background: linear-gradient(135deg, var(--pink), #B0006A); border-radius: 14px; padding: 16px; color: white;
+    }
+    .v3-checkin-label { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .7; margin-bottom: 4px; }
+    .v3-checkin h4 { font-size: 15px; font-weight: 900; margin-bottom: 6px; }
+    .v3-checkin p { font-size: 12px; opacity: .82; margin-bottom: 12px; line-height: 1.4; }
+    .v3-checkin-btn { background: white; color: var(--pink); border: none; border-radius: 9px; padding: 10px 16px; font-size: 13px; font-weight: 800; cursor: pointer; }
+
+    .v3-plan { padding: 18px 18px 0; }
+    .v3-plan-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .v3-plan-title { font-size: 15px; font-weight: 900; color: var(--gray-900); }
+    .v3-plan-link { font-size: 12px; color: var(--blue); font-weight: 600; }
+    .v3-main-action { background: white; border-radius: 14px; padding: 16px; border: 1.5px solid var(--gray-100); margin-bottom: 10px; }
+    .v3-main-tag { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--pink); font-weight: 800; margin-bottom: 5px; }
+    .v3-main-title { font-size: 16px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; letter-spacing: -.2px; }
+    .v3-main-desc { font-size: 12px; color: var(--gray-500); margin-bottom: 14px; line-height: 1.4; }
+    .v3-meta { display: flex; gap: 7px; margin-bottom: 14px; }
+    .v3-meta-chip { display: flex; align-items: center; gap: 4px; background: var(--gray-100); color: var(--gray-500); font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; }
+
+    .v3-tasks { display: flex; flex-direction: column; gap: 7px; }
+    .v3-task { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--gray-50); border-radius: 10px; }
+    .v3-task.done-t { opacity: .55; }
+    .v3-task-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+    .v3-task.done-t .v3-task-circle { background: var(--green); border-color: var(--green); color: white; }
+    .v3-task-lbl { flex: 1; font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .v3-task.done-t .v3-task-lbl { text-decoration: line-through; color: var(--gray-400); }
+    .v3-task-sub { font-size: 11px; color: var(--gray-400); }
+
+    .v3-progress { padding: 16px 18px 0; }
+    .v3-prog-card { background: white; border-radius: 14px; padding: 16px; border: 1.5px solid var(--gray-100); }
+    .v3-prog-row { display: flex; align-items: center; gap: 12px; padding: 5px 0; }
+    .v3-prog-row:not(:last-child) { border-bottom: 1px solid var(--gray-100); margin-bottom: 5px; }
+    .v3-prog-ico { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .v3-prog-meta { flex: 1; }
+    .v3-prog-meta h5 { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 1px; }
+    .v3-prog-meta span { font-size: 11px; color: var(--gray-400); }
+    .v3-prog-bar-w { width: 80px; }
+    .v3-prog-bar { height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; margin-bottom: 2px; }
+    .v3-prog-fill { height: 100%; border-radius: 3px; }
+    .v3-prog-pct { font-size: 11px; font-weight: 900; text-align: right; }
+
+    .v3-coach-inline { margin: 10px 18px 0; background: var(--blue-lt); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 11px; }
+    .v3-coach-av { width: 36px; height: 36px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid rgba(30,91,255,.3); flex-shrink: 0; }
+    .v3-coach-msg { flex: 1; font-size: 12px; color: var(--blue-dk); line-height: 1.4; }
+    .v3-coach-btn { background: var(--blue); color: white; border: none; border-radius: 8px; padding: 7px 11px; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+
+    /* ════════════════════════════════════
+       V4 — MOMENTUM (story-led / Sleepio)
+       ════════════════════════════════════ */
+    .v4-hero {
+      background: linear-gradient(145deg, #0F3B2E 0%, #166534 55%, #22C55E 100%);
+      padding: 26px 20px 22px; color: white;
+    }
+    .v4-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .v4-hero-week { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; opacity: .65; }
+    .v4-hero-streak { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.15); border-radius: 20px; padding: 4px 11px; }
+    .v4-hero-streak span { font-size: 12px; font-weight: 900; }
+    .v4-hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); border-radius: 8px; padding: 5px 11px; margin-bottom: 8px; font-size: 10px; font-weight: 700; }
+    .v4-headline { font-size: 20px; font-weight: 900; line-height: 1.25; letter-spacing: -.3px; margin-bottom: 6px; }
+    .v4-sub { font-size: 13px; opacity: .82; line-height: 1.45; }
+
+    .v4-arc { margin: 14px 18px 0; background: white; border-radius: 14px; padding: 16px; border: 1.5px solid var(--gray-100); }
+    .v4-arc-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .v4-arc-title { font-size: 13px; font-weight: 800; color: var(--gray-900); }
+    .v4-arc-weeks { display: flex; align-items: flex-end; gap: 7px; }
+    .v4-wk { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .v4-wk-bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; }
+    .v4-wk-bar.done-bar { background: var(--green); }
+    .v4-wk-bar.current-bar { background: var(--blue); box-shadow: 0 0 0 2px var(--blue-lt); }
+    .v4-wk-bar.future-bar {
+      background: repeating-linear-gradient(45deg, var(--gray-100) 0, var(--gray-100) 3px, white 3px, white 6px);
+      border: 1.5px dashed var(--gray-200);
+    }
+    .v4-wk-label { font-size: 9px; font-weight: 700; }
+    .v4-wk-val { font-size: 9px; font-weight: 800; }
+    .v4-arc-foot { margin-top: 10px; font-size: 11px; color: var(--gray-500); }
+    .v4-arc-foot strong { color: var(--green-dk); }
+
+    .v4-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 12px 18px 0; }
+    .v4-score { background: white; border-radius: 12px; padding: 13px; border: 1.5px solid var(--gray-100); text-align: center; }
+    .v4-score .vs-icon { font-size: 20px; margin-bottom: 5px; }
+    .v4-score .vs-val { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
+    .v4-score .vs-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); font-weight: 700; margin-top: 2px; }
+    .v4-score .vs-d { font-size: 10px; font-weight: 700; margin-top: 2px; }
+
+    .v4-impact { margin: 12px 18px 0; background: white; border-radius: 14px; padding: 16px; border: 1.5px solid var(--gray-100); }
+    .v4-impact-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .v4-impact-hd h4 { font-size: 13px; font-weight: 900; color: var(--gray-900); }
+    .v4-impact-hd span { font-size: 11px; color: var(--gray-400); }
+    .v4-impact-row { display: flex; align-items: center; gap: 11px; padding: 7px 0; border-bottom: 1px solid var(--gray-50); }
+    .v4-impact-row:last-child { border-bottom: none; }
+    .v4-impact-lbl { font-size: 12px; font-weight: 600; color: var(--gray-700); flex: 1; }
+    .v4-impact-bar { width: 80px; }
+    .v4-impact-track { height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; margin-bottom: 2px; }
+    .v4-impact-fill { height: 100%; border-radius: 3px; }
+    .v4-impact-fill.p { background: linear-gradient(90deg, var(--green), #4ADE80); }
+    .v4-impact-fill.n { background: linear-gradient(90deg, #EF4444, #F87171); }
+    .v4-impact-val { font-size: 11px; font-weight: 800; width: 35px; text-align: right; }
+    .v4-impact-val.p { color: var(--green-dk); }
+    .v4-impact-val.n { color: #EF4444; }
+
+    .v4-action { margin: 10px 18px 0; background: var(--pink); border-radius: 14px; padding: 16px; color: white; display: flex; align-items: center; gap: 12px; }
+    .v4-action-icon { width: 40px; height: 40px; background: rgba(255,255,255,.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .v4-action-info { flex: 1; }
+    .v4-action-info h4 { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+    .v4-action-info p { font-size: 12px; opacity: .82; }
+    .v4-action-arrow { font-size: 20px; opacity: .7; }
+
+  </style>
+</head>
+<body>
+
+<!-- ── META TOPBAR ── -->
+<div class="meta-topbar">
+  <div class="meta-inner">
+
+    <button class="hypo-tab active" onclick="show('v1', this)">
+      <div class="ht-color" style="background:#1E5BFF"></div>
+      <div class="ht-body">
+        <div class="ht-version">Hypothèse A</div>
+        <div class="ht-name">Coach<br>First</div>
+        <div class="ht-ref">↳ Sleepio</div>
+      </div>
+    </button>
+
+    <button class="hypo-tab" onclick="show('v2', this)">
+      <div class="ht-color" style="background:#22C55E"></div>
+      <div class="ht-body">
+        <div class="ht-version">Hypothèse B</div>
+        <div class="ht-name">Score<br>du jour</div>
+        <div class="ht-ref">↳ WHOOP · Oura</div>
+      </div>
+    </button>
+
+    <button class="hypo-tab" onclick="show('v3', this)">
+      <div class="ht-color" style="background:#E91E8C"></div>
+      <div class="ht-body">
+        <div class="ht-version">Hypothèse C</div>
+        <div class="ht-name">Plan<br>du jour</div>
+        <div class="ht-ref">↳ Noom · Kwit</div>
+      </div>
+    </button>
+
+    <button class="hypo-tab" onclick="show('v4', this)">
+      <div class="ht-color" style="background:#F59E0B"></div>
+      <div class="ht-body">
+        <div class="ht-version">Hypothèse D</div>
+        <div class="ht-name">Momentum<br>/ Progrès</div>
+        <div class="ht-ref">↳ Sleepio Weekly</div>
+      </div>
+    </button>
+
+  </div>
+</div>
+
+<!-- ── MODE BAR ── -->
+<div class="mode-bar">
+  <button class="mode-btn active" onclick="setMode('ob',this)">J1 · Premier accès</button>
+  <button class="mode-btn" onclick="setMode('prog',this)">Programme en cours</button>
+</div>
+
+<!-- ── PHONE ── -->
+<div class="phone">
+
+  <!-- App Header commun -->
+  <div class="app-header">
+    <div class="logo"><div class="logo-dot"></div>LineCoaching</div>
+    <div class="hdr-right">
+      <span style="font-size:18px">🔔</span>
+      <div class="av">👤<div class="dot"></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       V1 · COACH FIRST
+       North star : La relation coach EST le produit
+       ══════════════════════════════════ -->
+  <div class="state on scroll" id="v1">
+
+    <!-- ── ONBOARDING J1 ── -->
+    <div class="sub ob on">
+
+      <!-- Hero coach welcome -->
+      <div class="v1-hero" style="text-align:center;padding:28px 20px 24px">
+        <div class="v1-coach-av" style="margin:0 auto 14px;width:68px;height:68px;font-size:34px">👩‍⚕️</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;opacity:.65;margin-bottom:8px">Votre coach · LineCoaching Nutrition</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-.3px;margin-bottom:8px">Bienvenue Aline 👋</div>
+        <div style="font-size:14px;opacity:.85;line-height:1.55;max-width:280px;margin:0 auto">Je suis Marie. Pour personnaliser votre programme, j'ai besoin de 15 min pour mieux vous connaître.</div>
+        <!-- Steps -->
+        <div class="ob-steps">
+          <div class="ob-step">
+            <div class="ob-step-num" style="background:white;color:var(--blue)">1</div>
+            <div class="ob-step-lbl" style="color:rgba(255,255,255,.8)">Votre bilan<br>15 min</div>
+          </div>
+          <div class="ob-step-line"></div>
+          <div class="ob-step">
+            <div class="ob-step-num" style="border:2px solid rgba(255,255,255,.3);color:rgba(255,255,255,.45)">2</div>
+            <div class="ob-step-lbl" style="color:rgba(255,255,255,.4)">Plan<br>personnalisé</div>
+          </div>
+          <div class="ob-step-line"></div>
+          <div class="ob-step">
+            <div class="ob-step-num" style="border:2px solid rgba(255,255,255,.2);color:rgba(255,255,255,.3)">3</div>
+            <div class="ob-step-lbl" style="color:rgba(255,255,255,.3)">On<br>commence</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="annot">✦ État J1 · Coach First — Le QPP devient "rencontrer votre coach", pas un formulaire. CTA unique, zéro distraction.</div>
+
+      <!-- Coach bubble -->
+      <div style="margin:14px 18px 0;background:#EBF0FF;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👩‍⚕️</div>
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--blue-dk);margin-bottom:4px">Marie · Votre coach</div>
+          <div style="font-size:13px;color:var(--gray-700);line-height:1.55">"Je lirai votre bilan avant notre première visio pour préparer un programme vraiment adapté à vous — pas un plan générique."</div>
+        </div>
+      </div>
+
+      <!-- Single CTA -->
+      <div class="ob-cta-wrap">
+        <button class="btn-primary">Faire mon bilan avec Marie →</button>
+        <div class="ob-tip">15 min · Confidentiel · Ne pas interrompre</div>
+      </div>
+      <div class="sp"></div>
+    </div><!-- /sub ob v1 -->
+
+    <!-- ── PROGRAMME EN COURS ── -->
+    <div class="sub prog">
+
+    <!-- Hero coach -->
+    <div class="v1-hero">
+      <div class="v1-coach-row">
+        <div class="v1-coach-av">👩‍⚕️</div>
+        <div class="v1-coach-info">
+          <div class="v1-coach-tag">Votre coach · Programme LC Nutrition</div>
+          <div class="v1-coach-name">Bonjour Aline 👋</div>
+          <div class="v1-coach-msg">Je viens de regarder votre carnet de la semaine — vous faites de vrais progrès sur la satiété. J'ai une suggestion pour vous.</div>
+          <div class="v1-online">En ligne maintenant</div>
+        </div>
+      </div>
+      <div class="v1-session-card">
+        <div class="v1-session-icon">📅</div>
+        <div class="v1-session-info">
+          <h4>Séance coaching · Lun. 17 juin</h4>
+          <p>Dans 5 jours · Visio 45 min</p>
+        </div>
+        <button class="v1-session-btn">Confirmer</button>
+      </div>
+    </div>
+
+    <div class="annot">✦ Hypothèse A — Le coach EST en haut, plein écran. Différenciateur humain vs apps. Pattern Sleepio (coach-first onboarding).</div>
+
+    <!-- Message du coach -->
+    <div class="v1-msg-card">
+      <div class="v1-msg-label">💬 Message de Marie · Ce matin</div>
+      <div class="v1-msg-text">"Aline, cette semaine vous avez respecté la satiété dans 74% de vos repas — c'est votre record ! Pour aller plus loin, essayez de poser la fourchette entre chaque bouchée au dîner ce soir."</div>
+      <div class="v1-msg-cta">
+        <button class="v1-msg-btn v1-msg-reply">Répondre</button>
+        <button class="v1-msg-btn v1-msg-seen">Marqué comme lu</button>
+      </div>
+    </div>
+
+    <!-- Action du jour -->
+    <div class="v1-action-card">
+      <div class="v1-action-tag">📋 Étape A5 · Recommandée par Marie</div>
+      <div class="v1-action-title">Je découvre mes causes d'excès</div>
+      <div class="v1-action-desc">Comprendre pourquoi vous mangez sous l'effet des émotions — activité clé de la semaine 5.</div>
+      <button class="btn-primary">Commencer · 3 min →</button>
+    </div>
+
+    <!-- Sections verrouillées -->
+    <div class="v1-locked">
+      <div class="v1-locked-ico">🏆</div>
+      <div class="v1-locked-info"><h4>Défis de la semaine</h4><p>Validé par Marie le 17 juin</p></div>
+      <span style="font-size:14px;color:var(--gray-300)">›</span>
+    </div>
+    <div class="v1-locked">
+      <div class="v1-locked-ico">📊</div>
+      <div class="v1-locked-info"><h4>Mes statistiques</h4><p>Mise à jour chaque lundi</p></div>
+      <span style="font-size:14px;color:var(--gray-300)">›</span>
+    </div>
+
+    <div class="sp"></div>
+    </div><!-- /sub prog v1 -->
+  </div><!-- /v1 -->
+
+
+  <!-- ══════════════════════════════════
+       V2 · SCORE DU JOUR
+       North star : Un chiffre = savoir comment on se porte
+       ══════════════════════════════════ -->
+  <div class="state scroll" id="v2">
+
+    <!-- ── ONBOARDING J1 ── -->
+    <div class="sub ob on">
+
+      <!-- Dark hero with empty ring -->
+      <div class="v2-hero" style="text-align:center;padding:24px 20px 20px">
+        <div class="v2-date">Jour 1 · Programme LineCoaching</div>
+        <div class="v2-score-ring">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" stroke-width="10" fill="none" stroke="rgba(255,255,255,.08)" transform="rotate(-90 70 70)"/>
+            <circle cx="70" cy="70" r="60" stroke-width="10" fill="none" stroke="rgba(255,255,255,.15)" stroke-dasharray="20 356.8" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="v2-score-center">
+            <div class="v2-score-num" style="color:rgba(255,255,255,.25);font-size:44px">?</div>
+            <div class="v2-score-unit">Score Sensations</div>
+          </div>
+        </div>
+        <div class="v2-score-label" style="color:rgba(255,255,255,.5)">Pas encore calculé</div>
+        <div class="v2-score-sub" style="opacity:.6">Votre score apparaît ici après<br>votre bilan initial</div>
+      </div>
+
+      <div class="annot">✦ État J1 · Score du jour — La jauge vide crée une frustration positive. L'utilisateur veut "débloquer" son score. Pattern récompense différée.</div>
+
+      <!-- Unlock card -->
+      <div style="margin:14px 18px 0;background:white;border-radius:14px;padding:18px;border:1px solid var(--gray-100);box-shadow:0 2px 12px rgba(0,0,0,.07)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);font-weight:800;margin-bottom:8px">🔓 Débloquez votre score</div>
+        <div style="font-size:17px;font-weight:900;color:var(--gray-900);margin-bottom:6px">Votre bilan initial · 15 min</div>
+        <div style="font-size:13px;color:var(--gray-500);line-height:1.55;margin-bottom:16px">Répondez aux questions de votre coach pour calculer votre premier Score Sensations et démarrer votre programme personnalisé.</div>
+        <button class="btn-primary">Calculer mon premier score →</button>
+        <div class="ob-tip">Chaque carnet rempli améliorera votre score chaque jour</div>
+      </div>
+
+      <!-- Greyed scores grid -->
+      <div style="margin:12px 18px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;opacity:.25;pointer-events:none">
+        <div class="v2-score-card"><div class="vsc-icon">🍽</div><div class="vsc-lbl">Faim respectée</div><div class="vsc-val">—</div></div>
+        <div class="v2-score-card"><div class="vsc-icon">✋</div><div class="vsc-lbl">Satiété respectée</div><div class="vsc-val">—</div></div>
+        <div class="v2-score-card"><div class="vsc-icon">💛</div><div class="vsc-lbl">Émotionnel</div><div class="vsc-val">—</div></div>
+        <div class="v2-score-card"><div class="vsc-icon">📉</div><div class="vsc-lbl">Poids</div><div class="vsc-val">—</div></div>
+      </div>
+      <div class="sp"></div>
+    </div><!-- /sub ob v2 -->
+
+    <!-- ── PROGRAMME EN COURS ── -->
+    <div class="sub prog">
+
+    <!-- Score hero -->
+    <div class="v2-hero">
+      <div class="v2-date">Vendredi 12 juin · Semaine 6</div>
+
+      <!-- Grande jauge SVG -->
+      <div class="v2-score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="60" stroke-width="10" fill="none" stroke="rgba(255,255,255,.1)"/>
+          <circle cx="70" cy="70" r="60" stroke-width="10" fill="none"
+            stroke="#4ADE80" stroke-linecap="round"
+            stroke-dasharray="376.8"
+            stroke-dashoffset="94"
+            style="transition:stroke-dashoffset 1.2s ease"/>
+        </svg>
+        <div class="v2-score-center">
+          <div class="v2-score-num">75</div>
+          <div class="v2-score-unit">Score sensations</div>
+        </div>
+      </div>
+
+      <div class="v2-score-label">Bien · En progression</div>
+      <div class="v2-score-sub">Vous avez respecté faim & satiété<br>dans <strong>75% de vos repas</strong> cette semaine.</div>
+      <div class="v2-mini-row">
+        <div class="v2-mini">
+          <div class="vm-val" style="color:#F472B6">−4.2kg</div>
+          <div class="vm-lbl">depuis J1</div>
+        </div>
+        <div class="v2-mini">
+          <div class="vm-val" style="color:#60A5FA">3</div>
+          <div class="vm-lbl">séances sport</div>
+        </div>
+        <div class="v2-mini">
+          <div class="vm-val" style="color:#FBBF24">12 🔥</div>
+          <div class="vm-lbl">jours streak</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Hypothèse B — Un seul score synthétique en héros, basé sur les carnets. North star : "Je sais comment je me porte en 2 secondes" (pattern WHOOP/Oura).</div>
+
+    <!-- Carnet rapide -->
+    <div class="v2-carnet-banner">
+      <div class="v2-carnet-icon">📓</div>
+      <div class="v2-carnet-info">
+        <h4>Carnet du midi</h4>
+        <p>Non rempli · Améliore votre score de demain</p>
+      </div>
+      <button class="v2-carnet-btn">Remplir →</button>
+    </div>
+
+    <div class="annot">✦ Lien carnet → score explicite : remplir = améliorer mon score. Causalité visible = engagement.</div>
+
+    <!-- Grid scores secondaires -->
+    <div class="v2-scores-grid">
+      <div class="v2-score-card">
+        <div class="vsc-icon">🍽</div>
+        <div class="vsc-lbl">Faim respectée</div>
+        <div class="vsc-val" style="color:var(--green-dk)">82%</div>
+        <div class="vsc-sub">↑ +14 pts vs S5</div>
+        <div class="vsc-bar"><div class="vsc-fill" style="width:82%;background:var(--green)"></div></div>
+      </div>
+      <div class="v2-score-card">
+        <div class="vsc-icon">✋</div>
+        <div class="vsc-lbl">Satiété respectée</div>
+        <div class="vsc-val" style="color:var(--green-dk)">74%</div>
+        <div class="vsc-sub">↑ +9 pts vs S5</div>
+        <div class="vsc-bar"><div class="vsc-fill" style="width:74%;background:var(--green)"></div></div>
+      </div>
+      <div class="v2-score-card">
+        <div class="vsc-icon">💛</div>
+        <div class="vsc-lbl">Manger émotionnel</div>
+        <div class="vsc-val" style="color:var(--orange)">3</div>
+        <div class="vsc-sub">↓ −2 vs S5</div>
+        <div class="vsc-bar"><div class="vsc-fill" style="width:30%;background:var(--orange)"></div></div>
+      </div>
+      <div class="v2-score-card">
+        <div class="vsc-icon">📉</div>
+        <div class="vsc-lbl">Évolution poids</div>
+        <div class="vsc-val" style="color:var(--blue)">91.0<span style="font-size:13px"> kg</span></div>
+        <div class="vsc-sub">−4.2 kg depuis J1</div>
+        <div class="vsc-bar"><div class="vsc-fill" style="width:65%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+
+    <!-- Insight -->
+    <div class="v2-insight">
+      <h4>🌟 Insight du jour · Marie</h4>
+      <p>Vos repas sans écran améliorent votre faim de +28%. Essayez encore ce soir !</p>
+    </div>
+
+    <!-- Action -->
+    <div class="v2-action">
+      <div class="v2-action-icon">▶</div>
+      <div class="v2-action-info">
+        <h4>Étape A5 · Programme</h4>
+        <p>Je découvre mes causes d'excès · 3 min</p>
+      </div>
+      <div class="v2-action-arrow">›</div>
+    </div>
+
+    <div class="sp"></div>
+    </div><!-- /sub prog v2 -->
+  </div><!-- /v2 -->
+
+
+  <!-- ══════════════════════════════════
+       V3 · PLAN DU JOUR
+       North star : Chaque jour une habitude → résultat durable
+       ══════════════════════════════════ -->
+  <div class="state scroll" id="v3">
+
+    <!-- ── ONBOARDING J1 ── -->
+    <div class="sub ob on">
+
+      <!-- Greeting + empty week -->
+      <div class="v3-daybar">
+        <div class="v3-daybar-top">
+          <div class="v3-greeting">Bienvenue Aline ☀️</div>
+          <div class="v3-streak" style="opacity:.3">🔥<span>0 jours</span></div>
+        </div>
+        <div class="v3-week">
+          <div class="v3-day today" style="font-size:9px;line-height:1.2">J1<br>·</div>
+          <div class="v3-day" style="font-size:9px">J2</div>
+          <div class="v3-day" style="font-size:9px">J3</div>
+          <div class="v3-day" style="font-size:9px">J4</div>
+          <div class="v3-day" style="font-size:9px">J5</div>
+          <div class="v3-day" style="font-size:9px">J6</div>
+          <div class="v3-day" style="font-size:9px">J7</div>
+        </div>
+      </div>
+
+      <div class="annot">✦ État J1 · Plan du jour — Un seul item dans le plan : le bilan. Le reste verrouillé avec message clair, pas une page vide.</div>
+
+      <!-- Single plan item: QPP -->
+      <div style="padding:14px 18px 0">
+        <div style="font-size:13px;font-weight:800;color:var(--gray-900);margin-bottom:10px">Plan du jour</div>
+        <div style="background:linear-gradient(135deg,var(--pink),#B0006A);border-radius:14px;padding:18px;color:white">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;opacity:.75;margin-bottom:6px">Étape 1 sur 1 · À faire maintenant</div>
+          <div style="font-size:18px;font-weight:900;margin-bottom:6px">Votre bilan initial</div>
+          <div style="font-size:13px;opacity:.85;line-height:1.5;margin-bottom:16px">15 questions pour personnaliser votre programme d'alimentation intuitive. Votre coach lira les résultats avant votre première séance.</div>
+          <button style="background:white;color:var(--pink);border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:800;width:100%;cursor:pointer">Commencer le bilan →</button>
+        </div>
+      </div>
+
+      <!-- Locked tasks (upcoming) -->
+      <div style="padding:14px 18px 0;opacity:.3;pointer-events:none">
+        <div style="font-size:13px;font-weight:800;color:var(--gray-900);margin-bottom:10px">Disponible après votre bilan</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="v3-task"><div class="v3-check"></div><div class="v3-task-lbl">Carnet du déjeuner</div><span class="v3-task-dur">—</span></div>
+          <div class="v3-task"><div class="v3-check"></div><div class="v3-task-lbl">Étape A1 · Programme LC</div><span class="v3-task-dur">—</span></div>
+          <div class="v3-task"><div class="v3-check"></div><div class="v3-task-lbl">Carnet du dîner</div><span class="v3-task-dur">—</span></div>
+        </div>
+      </div>
+      <div class="sp"></div>
+    </div><!-- /sub ob v3 -->
+
+    <!-- ── PROGRAMME EN COURS ── -->
+    <div class="sub prog">
+
+    <!-- Day bar + streak -->
+    <div class="v3-daybar">
+      <div class="v3-daybar-top">
+        <div class="v3-greeting">Bonjour Aline ☀️</div>
+        <div class="v3-streak">🔥<span>12 jours</span></div>
+      </div>
+      <div class="v3-week">
+        <div class="v3-day done">L<br>✓</div>
+        <div class="v3-day done">M<br>✓</div>
+        <div class="v3-day done">M<br>✓</div>
+        <div class="v3-day done">J<br>✓</div>
+        <div class="v3-day today">V<br>·</div>
+        <div class="v3-day">S</div>
+        <div class="v3-day">D</div>
+      </div>
+    </div>
+
+    <!-- Carnet check-in -->
+    <div class="v3-checkin">
+      <div class="v3-checkin-label">📓 Carnet du déjeuner</div>
+      <h4>Avant de manger, posez-vous</h4>
+      <p>Avez-vous vraiment faim ? Sur 10, votre niveau de faim avant ce repas ?</p>
+      <button class="v3-checkin-btn">Remplir mon carnet →</button>
+    </div>
+
+    <div class="annot">✦ Hypothèse C — L'habitude quotidienne au centre. Pattern Noom (check-in matinal) + Kwit (streak). Le carnet devient le rituel, pas juste un outil.</div>
+
+    <!-- Plan du jour -->
+    <div class="v3-plan">
+      <div class="v3-plan-hd">
+        <div class="v3-plan-title">Plan du jour</div>
+        <a class="v3-plan-link" href="#">Tout voir</a>
+      </div>
+
+      <!-- Action principale -->
+      <div class="v3-main-action">
+        <div class="v3-main-tag">📋 Étape A5 · Alimentation intuitive</div>
+        <div class="v3-main-title">Je découvre mes causes d'excès</div>
+        <div class="v3-main-desc">Comprendre pourquoi vous mangez sous l'effet des émotions — activité clé de la semaine 5.</div>
+        <div class="v3-meta">
+          <span class="v3-meta-chip">⏱ 3 min</span>
+          <span class="v3-meta-chip">📖 Activité</span>
+        </div>
+        <button class="btn-primary">Commencer →</button>
+      </div>
+
+      <!-- Tâches du jour -->
+      <div class="v3-tasks">
+        <div class="v3-task done-t">
+          <div class="v3-task-circle">✓</div>
+          <div class="v3-task-lbl">Carnet du petit-déjeuner</div>
+          <div class="v3-task-sub">8h12</div>
+        </div>
+        <div class="v3-task">
+          <div class="v3-task-circle"></div>
+          <div class="v3-task-lbl">Carnet du déjeuner</div>
+          <div class="v3-task-sub">À faire</div>
+        </div>
+        <div class="v3-task">
+          <div class="v3-task-circle"></div>
+          <div class="v3-task-lbl">Carnet du dîner</div>
+          <div class="v3-task-sub">Ce soir</div>
+        </div>
+        <div class="v3-task">
+          <div class="v3-task-circle"></div>
+          <div class="v3-task-lbl">Boire 1,5L d'eau</div>
+          <div class="v3-task-sub">Objectif du programme</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progression condensée -->
+    <div class="v3-progress">
+      <div class="sec-hd" style="padding:0;margin-bottom:10px">
+        <div class="sec-title">Ma progression</div>
+      </div>
+      <div class="v3-prog-card">
+        <div class="v3-prog-row">
+          <div class="v3-prog-ico" style="background:#F0FDF4">🍽</div>
+          <div class="v3-prog-meta"><h5>Sensations alim.</h5><span>Sem. 6 · 75%</span></div>
+          <div class="v3-prog-bar-w">
+            <div class="v3-prog-bar"><div class="v3-prog-fill" style="width:75%;background:var(--green)"></div></div>
+            <div class="v3-prog-pct" style="color:var(--green-dk)">75% <span style="color:var(--green);font-size:9px">+12</span></div>
+          </div>
+        </div>
+        <div class="v3-prog-row">
+          <div class="v3-prog-ico" style="background:#FFF8F0">📉</div>
+          <div class="v3-prog-meta"><h5>Évolution poids</h5><span>91.0 kg · −4.2 kg</span></div>
+          <div class="v3-prog-bar-w">
+            <div class="v3-prog-bar"><div class="v3-prog-fill" style="width:60%;background:var(--blue)"></div></div>
+            <div class="v3-prog-pct" style="color:var(--blue)">S5/S6</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coach inline -->
+    <div class="v3-coach-inline">
+      <div class="v3-coach-av">👩‍⚕️</div>
+      <div class="v3-coach-msg"><strong>Marie :</strong> "Super semaine ! Votre streak de 12 jours montre un vrai engagement. Prochain appel lundi."</div>
+      <button class="v3-coach-btn">Msg</button>
+    </div>
+
+    <div class="sp"></div>
+    </div><!-- /sub prog v3 -->
+  </div><!-- /v3 -->
+
+
+  <!-- ══════════════════════════════════
+       V4 · MOMENTUM / PROGRÈS
+       North star : L'histoire de ma transformation
+       ══════════════════════════════════ -->
+  <div class="state scroll" id="v4">
+
+    <!-- ── ONBOARDING J1 ── -->
+    <div class="sub ob on">
+
+      <!-- Green hero: empty arc -->
+      <div class="v4-hero">
+        <div class="v4-badge" style="opacity:.7">Semaine 0 · Histoire à construire</div>
+        <div class="v4-headline" style="color:rgba(255,255,255,.4)">Votre histoire<br>commence ici</div>
+        <div style="font-size:14px;opacity:.7;line-height:1.55">Dans 8 semaines, ce graphique racontera votre transformation.</div>
+      </div>
+
+      <div class="annot">✦ État J1 · Momentum — L'arc vide crée la promesse narrative. "Ce que vous verrez" est aussi motivant que "ce que vous avez fait". Pattern Sleepio.</div>
+
+      <!-- Empty arc chart -->
+      <div style="margin:14px 18px 0;background:white;border-radius:14px;padding:18px;border:1px solid var(--gray-100);box-shadow:0 2px 12px rgba(0,0,0,.07)">
+        <div style="font-size:13px;font-weight:800;color:var(--gray-900);margin-bottom:3px">Progression 8 semaines</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:14px">Score Sensations alimentaires</div>
+        <!-- All future bars -->
+        <div style="display:flex;align-items:flex-end;gap:8px;height:80px;margin-bottom:10px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:40px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S1</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:50px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S2</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:60px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S3</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:65px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S4</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:70px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S5</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:75px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S6</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:78px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S7</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="width:100%;height:80px;border-radius:5px 5px 0 0;background:repeating-linear-gradient(45deg,#F1F3F5 0,#F1F3F5 3px,white 3px,white 6px);border:1.5px dashed var(--gray-200)"></div>
+            <span style="font-size:9px;color:var(--gray-300)">S8</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--gray-400);text-align:center;font-style:italic;border-top:1px solid var(--gray-100);padding-top:10px">Commencez votre bilan pour écrire le premier point</div>
+      </div>
+
+      <!-- Green CTA card -->
+      <div style="margin:14px 18px 0">
+        <div style="background:linear-gradient(135deg,#166534,var(--green-dk));border-radius:14px;padding:20px;color:white;text-align:center">
+          <div style="font-size:16px;font-weight:900;margin-bottom:6px">Écrire le premier chapitre</div>
+          <div style="font-size:13px;opacity:.82;margin-bottom:16px">Votre bilan initial · 15 min</div>
+          <button style="background:white;color:var(--green-dk);border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:800;width:100%;cursor:pointer">Commencer →</button>
+        </div>
+      </div>
+      <div class="sp"></div>
+    </div><!-- /sub ob v4 -->
+
+    <!-- ── PROGRAMME EN COURS ── -->
+    <div class="sub prog">
+
+    <!-- Hero narrative -->
+    <div class="v4-hero">
+      <div class="v4-hero-top">
+        <div class="v4-hero-week">Semaine 6 · Bilan</div>
+        <div class="v4-hero-streak">🔥 <span>12 jours</span></div>
+      </div>
+      <div class="v4-hero-badge">✨ Votre meilleur score depuis le début</div>
+      <div class="v4-headline">Cette semaine, vous avez respecté votre faim dans 75% de vos repas</div>
+      <div class="v4-sub">C'est +12 pts vs la semaine dernière — et −4.2 kg depuis le J1 sans jamais vous priver.</div>
+    </div>
+
+    <div class="annot">✦ Hypothèse D — L'histoire de la transformation en héros. Pattern Sleepio Weekly Review. La donnée devient une phrase de coaching. Le passé prouve que ça marche.</div>
+
+    <!-- Arc de progression -->
+    <div class="v4-arc">
+      <div class="v4-arc-hd">
+        <div class="v4-arc-title">Progression sur 8 semaines</div>
+        <span style="font-size:11px;color:var(--gray-400)">Score sensations</span>
+      </div>
+      <div class="v4-arc-weeks">
+        <div class="v4-wk">
+          <div class="v4-wk-bar done-bar" style="height:28px"></div>
+          <div class="v4-wk-label" style="color:var(--green-dk)">S1</div>
+          <div class="v4-wk-val" style="color:var(--green-dk)">42%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar done-bar" style="height:36px"></div>
+          <div class="v4-wk-label" style="color:var(--green-dk)">S2</div>
+          <div class="v4-wk-val" style="color:var(--green-dk)">52%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar done-bar" style="height:42px"></div>
+          <div class="v4-wk-label" style="color:var(--green-dk)">S3</div>
+          <div class="v4-wk-val" style="color:var(--green-dk)">60%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar done-bar" style="height:46px"></div>
+          <div class="v4-wk-label" style="color:var(--green-dk)">S4</div>
+          <div class="v4-wk-val" style="color:var(--green-dk)">66%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar done-bar" style="height:50px"></div>
+          <div class="v4-wk-label" style="color:var(--green-dk)">S5</div>
+          <div class="v4-wk-val" style="color:var(--green-dk)">63%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar current-bar" style="height:54px"></div>
+          <div class="v4-wk-label" style="color:var(--blue);font-weight:900">S6 ←</div>
+          <div class="v4-wk-val" style="color:var(--blue);font-weight:900">75%</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar future-bar" style="height:58px"></div>
+          <div class="v4-wk-label" style="color:var(--gray-300)">S7</div>
+          <div class="v4-wk-val" style="color:var(--gray-300)">?</div>
+        </div>
+        <div class="v4-wk">
+          <div class="v4-wk-bar future-bar" style="height:64px"></div>
+          <div class="v4-wk-label" style="color:var(--gray-300)">S8</div>
+          <div class="v4-wk-val" style="color:var(--gray-300)">?</div>
+        </div>
+      </div>
+      <div class="v4-arc-foot">📍 Vous êtes ici · S6 sur 8 · <strong>+33 pts depuis le début</strong></div>
+    </div>
+
+    <!-- 3 scores -->
+    <div class="v4-scores">
+      <div class="v4-score">
+        <div class="vs-icon">🍽</div>
+        <div class="vs-val" style="color:var(--green-dk)">75%</div>
+        <div class="vs-lbl">Sensations</div>
+        <div class="vs-d" style="color:var(--green)">+12 pts</div>
+      </div>
+      <div class="v4-score">
+        <div class="vs-icon">📉</div>
+        <div class="vs-val" style="color:var(--blue)">−4.2<span style="font-size:12px">kg</span></div>
+        <div class="vs-lbl">Poids</div>
+        <div class="vs-d" style="color:var(--blue)">Durable</div>
+      </div>
+      <div class="v4-score">
+        <div class="vs-icon">💛</div>
+        <div class="vs-val" style="color:var(--orange)">3</div>
+        <div class="vs-lbl">Émotionnel</div>
+        <div class="vs-d" style="color:var(--green)">↓ −2</div>
+      </div>
+    </div>
+
+    <!-- Impact comportements mini -->
+    <div class="v4-impact">
+      <div class="v4-impact-hd">
+        <h4>Ce qui vous aide le plus</h4>
+        <span>90 jours · Carnets</span>
+      </div>
+      <div class="v4-impact-row">
+        <div class="v4-impact-lbl">🥗 Repas sans écran</div>
+        <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill p" style="width:85%"></div></div></div>
+        <div class="v4-impact-val p">+28%</div>
+      </div>
+      <div class="v4-impact-row">
+        <div class="v4-impact-lbl">⏰ Horaires réguliers</div>
+        <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill p" style="width:70%"></div></div></div>
+        <div class="v4-impact-val p">+22%</div>
+      </div>
+      <div class="v4-impact-row">
+        <div class="v4-impact-lbl">😰 Stress élevé</div>
+        <div class="v4-impact-bar"><div class="v4-impact-track"><div class="v4-impact-fill n" style="width:50%"></div></div></div>
+        <div class="v4-impact-val n">−18%</div>
+      </div>
+    </div>
+
+    <div class="annot">✦ Pattern WHOOP Journal adapté sans capteur : corrélation comportements déclarés → score sensations. Visible dès semaine 4 de carnets.</div>
+
+    <!-- Action du jour -->
+    <div class="v4-action">
+      <div class="v4-action-icon">▶</div>
+      <div class="v4-action-info">
+        <h4>Continuer l'étape A5</h4>
+        <p>Je découvre mes causes d'excès · 3 min</p>
+      </div>
+      <div class="v4-action-arrow">›</div>
+    </div>
+
+    <div class="sp"></div>
+    </div><!-- /sub prog v4 -->
+  </div><!-- /v4 -->
+
+  <!-- Bottom nav -->
+  <div class="bnav">
+    <div class="bni on"><span class="i">🏠</span><span class="l">Accueil</span></div>
+    <div class="bni"><span class="i">📋</span><span class="l">Programme</span></div>
+    <div class="bni"><span class="i">📓</span><span class="l">Carnets</span></div>
+    <div class="bni"><span class="i">📊</span><span class="l">Stats</span></div>
+    <div class="bni"><span class="i">👩‍⚕️</span><span class="l">Coach</span></div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  let currentMode = 'ob';
+
+  function show(id, btn) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('on'));
+    document.querySelectorAll('.hypo-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('on');
+    btn.classList.add('active');
+    applyMode();
+  }
+
+  function setMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyMode();
+  }
+
+  function applyMode() {
+    document.querySelectorAll('.sub').forEach(s => s.classList.remove('on'));
+    const activeState = document.querySelector('.state.on');
+    if (activeState) {
+      const target = activeState.querySelector('.sub.' + currentMode);
+      if (target) target.classList.add('on');
+    }
+  }
+</script>
+</body>
+</html>
